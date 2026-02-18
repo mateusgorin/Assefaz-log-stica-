@@ -1,7 +1,8 @@
 
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="100" fill="#14213D"/>
-  <path d="M256 120L100 200V312L256 392L412 312V200L256 120Z" stroke="#FCA311" stroke-width="25" stroke-linejoin="round"/>
-  <path d="M100 200L256 280M412 200L256 280M256 392V280" stroke="#FCA311" stroke-width="25" stroke-linecap="round"/>
-  <path d="M178 160L334 240" stroke="#FCA311" stroke-width="15" stroke-linecap="round" opacity="0.5"/>
+  <rect width="512" height="512" rx="120" fill="#14213D"/>
+  <path d="M256 100L80 190V322L256 412L432 322V190L256 100Z" fill="#FCA311"/>
+  <path d="M80 190L256 280M432 190L256 280M256 412V280" stroke="#14213D" stroke-width="20" stroke-linecap="round"/>
+  <path d="M168 145L344 235" stroke="#14213D" stroke-width="12" stroke-linecap="round" opacity="0.3"/>
+  <rect x="236" y="260" width="40" height="40" rx="4" fill="#14213D" opacity="0.2"/>
 </svg>
