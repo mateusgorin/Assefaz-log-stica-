@@ -22,21 +22,12 @@
         font-family: 'IBM Plex Sans', sans-serif;
         background-color: #F4F6F8;
         -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
       }
-      .custom-scrollbar::-webkit-scrollbar {
-        width: 4px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-      }
-      @media print {
-        .print\:hidden {
-          display: none !important;
-        }
-      }
+      .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; }
+      @media print { .print\:hidden { display: none !important; } }
     </style>
     <script type="importmap">
 {
@@ -50,14 +41,14 @@
     "jspdf": "https://esm.sh/jspdf@2.5.1",
     "jspdf-autotable": "https://esm.sh/jspdf-autotable@3.8.2?external=jspdf",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.7",
-    "vite": "https://esm.sh/vite@^7.3.1",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "vite": "https://esm.sh/vite@^7.3.1",
     "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4"
   }
 }
 </script>
   </head>
-  <body class="text-slate-700 m-0 p-0 overflow-x-hidden">
+  <body class="text-slate-700 m-0 p-0">
     <div id="root"></div>
     <script type="module" src="index.tsx"></script>
     <script>
@@ -66,7 +57,7 @@
           navigator.serviceWorker.register('./sw.js').then(reg => {
             console.log('SW Registered');
             reg.update();
-          }).catch(err => console.log('SW registration failed:', err));
+          }).catch(err => console.log('SW failed:', err));
         });
       }
     </script>

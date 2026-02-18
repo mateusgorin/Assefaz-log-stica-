@@ -10,15 +10,21 @@ import History from './components/History.tsx';
 import Management from './components/Management.tsx';
 import Reports from './components/Reports.tsx';
 import Inventory from './components/Inventory.tsx';
-import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building, Smartphone } from 'lucide-react';
+import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
+
+// SENHA DE ACESSO DO SISTEMA ATUALIZADA
+const ACCESS_PASSCODE = "Assefaz89";
 
 const App: React.FC = () => {
+  const [isAuthorized, setIsAuthorized] = useState(() => localStorage.getItem('assefaz_auth') === 'true');
+  const [passcodeInput, setPasscodeInput] = useState('');
+  const [passError, setPassError] = useState(false);
+  
   const [activeUnit, setActiveUnit] = useState<Unit | null>(null);
   const [currentView, setCurrentView] = useState<View>(View.DASHBOARD);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [configured, setConfigured] = useState(isConfigured());
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -32,12 +38,17 @@ const App: React.FC = () => {
   const [stockStaff, setStockStaff] = useState<StockStaff[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
 
-  useEffect(() => {
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    });
-  }, []);
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passcodeInput === ACCESS_PASSCODE) {
+      localStorage.setItem('assefaz_auth', 'true');
+      setIsAuthorized(true);
+      setPassError(false);
+    } else {
+      setPassError(true);
+      setPasscodeInput('');
+    }
+  };
 
   const fetchData = useCallback(async () => {
     if (!configured || !activeUnit) return;
@@ -79,10 +90,10 @@ const App: React.FC = () => {
   }, [configured, activeUnit]);
 
   useEffect(() => {
-    if (configured && activeUnit) {
+    if (configured && activeUnit && isAuthorized) {
       fetchData();
     }
-  }, [configured, activeUnit, fetchData]);
+  }, [configured, activeUnit, fetchData, isAuthorized]);
 
   const openConfirm = (title: string, message: string, onConfirm: () => void) => {
     setConfirmModal({ isOpen: true, title, message, onConfirm });
@@ -189,6 +200,36 @@ const App: React.FC = () => {
     });
   }, [fetchData]);
 
+  // TELA DE ACESSO (Login)
+  if (!isAuthorized) {
+    return (
+      <div className="h-screen w-screen bg-[#14213D] flex items-center justify-center p-6">
+        <form onSubmit={handleLogin} className="max-w-sm w-full bg-white p-10 shadow-2xl border-t-8 border-amber-500 text-center animate-in zoom-in duration-300">
+          <div className="w-16 h-16 bg-[#14213D]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-8 h-8 text-[#14213D]" />
+          </div>
+          <h1 className="text-xl font-bold text-slate-800 uppercase tracking-tighter mb-2">Acesso Restrito</h1>
+          <p className="text-[10px] text-slate-400 mb-8 uppercase tracking-widest font-bold">Logística Assefaz</p>
+          
+          <div className="space-y-4">
+            <input 
+              type="password" 
+              placeholder="SENHA DE ACESSO"
+              value={passcodeInput}
+              onChange={(e) => setPasscodeInput(e.target.value)}
+              className={`w-full bg-slate-50 border ${passError ? 'border-red-500' : 'border-slate-200'} px-4 py-4 text-center text-lg font-black tracking-[0.2em] focus:outline-none focus:border-[#14213D] transition-all`}
+            />
+            {passError && <p className="text-[9px] text-red-500 font-bold uppercase">Senha incorreta!</p>}
+            <button type="submit" className="w-full bg-[#14213D] text-white py-4 font-bold uppercase tracking-widest text-[11px] hover:bg-black transition-all flex items-center justify-center gap-2">
+              Entrar no sistema <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+          <p className="mt-8 text-[9px] text-slate-300 uppercase tracking-widest font-medium">Uso restrito a funcionários autorizados</p>
+        </form>
+      </div>
+    );
+  }
+
   if (!configured) {
     return (
       <div className="h-screen w-screen bg-slate-900 flex items-center justify-center p-6">
@@ -236,6 +277,15 @@ const App: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Botão de Logout para desautorizar o dispositivo */}
+        <button 
+          onClick={() => { localStorage.removeItem('assefaz_auth'); setIsAuthorized(false); }}
+          className="fixed bottom-6 right-6 z-[100] bg-white/10 hover:bg-white/20 p-4 rounded-full text-white/40 hover:text-white transition-all backdrop-blur-sm"
+          title="Desautorizar este dispositivo"
+        >
+          <ShieldCheck className="w-6 h-6" />
+        </button>
       </div>
     );
   }
@@ -255,7 +305,7 @@ const App: React.FC = () => {
       {confirmModal.isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeConfirm} />
-          <div className={`relative bg-white w-full max-w-sm p-8 shadow-2xl border-t-8 ${theme.confirmBorder} animate-in zoom-in duration-200`}>
+          <div className={`relative bg-white w-full max-sm p-8 shadow-2xl border-t-8 ${theme.confirmBorder} animate-in zoom-in duration-200`}>
             <button onClick={closeConfirm} className="absolute top-4 right-4 text-slate-300 hover:text-slate-600 transition-colors">
               <X className="w-5 h-5" />
             </button>

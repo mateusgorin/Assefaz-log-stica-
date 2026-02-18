@@ -1,8 +1,8 @@
 
 {
-  "id": "assefaz-logistica-pwa",
+  "id": "assefaz-logistica-v2",
   "short_name": "Logística",
-  "name": "Logística",
+  "name": "Assefaz Logística",
   "description": "Controle de Estoque e Insumos Assefaz",
   "icons": [
     {
@@ -24,7 +24,7 @@
       "purpose": "maskable"
     }
   ],
-  "start_url": "index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#14213D",
