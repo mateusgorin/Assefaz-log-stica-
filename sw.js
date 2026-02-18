@@ -1,9 +1,9 @@
 
-const CACHE_NAME = 'logistica-v5'; 
+const CACHE_NAME = 'logistica-v6'; 
 const ASSETS = [
-  './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './index.tsx'
 ];
 
 self.addEventListener('install', (event) => {
@@ -24,7 +24,15 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Estratégia: Tenta rede, se falhar ou estiver offline, usa cache para o index.html
   event.respondWith(
-    caches.match(event.request).then((response) => response || fetch(event.request))
+    fetch(event.request).catch(() => {
+      return caches.match(event.request).then((response) => {
+        if (response) return response;
+        if (event.request.mode === 'navigate') {
+          return caches.match('./index.html');
+        }
+      });
+    })
   );
 });

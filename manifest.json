@@ -1,6 +1,6 @@
 
 {
-  "id": "assefaz-logistica-v2",
+  "id": "assefaz-logistica-v3",
   "short_name": "Logística",
   "name": "Assefaz Logística",
   "description": "Controle de Estoque e Insumos Assefaz",
@@ -24,7 +24,7 @@
       "purpose": "maskable"
     }
   ],
-  "start_url": "./",
+  "start_url": "index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#14213D",
