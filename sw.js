@@ -1,10 +1,9 @@
 
-const CACHE_NAME = 'logistica-v3'; 
+const CACHE_NAME = 'logistica-v4'; 
 const ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/favicon.svg'
+  '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {

@@ -10,7 +10,7 @@ import History from './components/History.tsx';
 import Management from './components/Management.tsx';
 import Reports from './components/Reports.tsx';
 import Inventory from './components/Inventory.tsx';
-import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building } from 'lucide-react';
+import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building, Smartphone } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeUnit, setActiveUnit] = useState<Unit | null>(null);
@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [configured, setConfigured] = useState(isConfigured());
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -30,6 +31,28 @@ const App: React.FC = () => {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [stockStaff, setStockStaff] = useState<StockStaff[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
+
+  // Lógica para capturar evento de instalação do PWA
+  useEffect(() => {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    });
+
+    window.addEventListener('appinstalled', () => {
+      setDeferredPrompt(null);
+      console.log('App instalado com sucesso!');
+    });
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
 
   const fetchData = useCallback(async () => {
     if (!configured || !activeUnit) return;
@@ -197,6 +220,20 @@ const App: React.FC = () => {
   if (!activeUnit) {
     return (
       <div className="flex flex-col lg:flex-row h-screen w-screen overflow-hidden">
+        {/* Banner de Instalação PWA */}
+        {deferredPrompt && (
+          <div className="fixed top-0 left-0 w-full z-[100] bg-emerald-600 text-white p-4 flex items-center justify-between shadow-2xl animate-in slide-in-from-top duration-500">
+            <div className="flex items-center gap-3">
+              <Smartphone className="w-5 h-5" />
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest">Deseja instalar como aplicativo?</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setDeferredPrompt(null)} className="px-3 py-1 text-[9px] uppercase font-bold border border-white/20">Agora não</button>
+              <button onClick={handleInstallClick} className="px-4 py-1 bg-white text-emerald-600 text-[9px] uppercase font-black">Instalar</button>
+            </div>
+          </div>
+        )}
+
         <div 
           className="group relative flex-1 bg-[#14213D] flex flex-col items-center justify-center p-12 cursor-pointer transition-all duration-700 hover:flex-[1.2]" 
           onClick={() => setActiveUnit('sede')}
