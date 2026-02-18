@@ -8,7 +8,7 @@
     
     <!-- PWA & Icons -->
     <link rel="manifest" href="manifest.json" />
-    <link rel="icon" type="image/png" href="https://i.postimg.cc/ZqTLQrVF/Picsart-26-02-17-23-27-29-240.png" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="https://i.postimg.cc/ZqTLQrVF/Picsart-26-02-17-23-27-29-240.png" />
     <meta name="theme-color" content="#14213D" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -63,7 +63,9 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+          navigator.serviceWorker.register('./sw.js').then(reg => {
+            reg.update(); // Força a atualização do ícone
+          }).catch(err => console.log('SW registration failed:', err));
         });
       }
     </script>
