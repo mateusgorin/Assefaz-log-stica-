@@ -10,7 +10,7 @@ import History from './components/History.tsx';
 import Management from './components/Management.tsx';
 import Reports from './components/Reports.tsx';
 import Inventory from './components/Inventory.tsx';
-import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building, Lock, ArrowRight } from 'lucide-react';
 
 // SENHA DE ACESSO DO SISTEMA ATUALIZADA
 const ACCESS_PASSCODE = "Assefaz89";
@@ -277,15 +277,6 @@ const App: React.FC = () => {
             </button>
           </div>
         </div>
-
-        {/* Botão de Logout para desautorizar o dispositivo */}
-        <button 
-          onClick={() => { localStorage.removeItem('assefaz_auth'); setIsAuthorized(false); }}
-          className="fixed bottom-6 right-6 z-[100] bg-white/10 hover:bg-white/20 p-4 rounded-full text-white/40 hover:text-white transition-all backdrop-blur-sm"
-          title="Desautorizar este dispositivo"
-        >
-          <ShieldCheck className="w-6 h-6" />
-        </button>
       </div>
     );
   }
