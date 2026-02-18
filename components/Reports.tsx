@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Download, FileText, Printer, FileSpreadsheet, Loader2, CheckCircle, Calendar, ChevronDown } from 'lucide-react';
+import { Download, FileText, Printer, FileSpreadsheet, Loader2, CheckCircle, Calendar, ChevronDown, AlertCircle } from 'lucide-react';
 import { Unit, Movement, Product, Collaborator, StockStaff } from '../types';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -29,18 +29,65 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
 
   const years = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i);
 
-  // Filtra movimentos pelo mês e ano selecionados
+  // --- LÓGICA DE CÁLCULO DE MÉTRICAS (Igual ao Dashboard para integridade) ---
+  
   const filteredMovements = useMemo(() => {
     return movements.filter(m => {
       if (m.unit !== unit) return false;
-      const [day, month, year] = m.date.split('/').map(Number);
+      const [, month, year] = m.date.split('/').map(Number);
       return month === selectedMonth && year === selectedYear;
     }).sort((a, b) => {
       const dateA = new Date(`${a.date.split('/').reverse().join('-')} ${a.time}`);
       const dateB = new Date(`${b.date.split('/').reverse().join('-')} ${b.time}`);
-      return dateA.getTime() - dateB.getTime(); // Ordem cronológica para o relatório
+      return dateA.getTime() - dateB.getTime();
     });
   }, [movements, unit, selectedMonth, selectedYear]);
+
+  const stats = useMemo(() => {
+    const totalQty = filteredMovements.reduce((acc, m) => acc + m.quantity, 0);
+    
+    // Rankings Período
+    const colMap: Record<string, number> = {};
+    const prodMap: Record<string, number> = {};
+    filteredMovements.forEach(m => {
+      colMap[m.collaboratorId] = (colMap[m.collaboratorId] || 0) + m.quantity;
+      prodMap[m.productId] = (prodMap[m.productId] || 0) + m.quantity;
+    });
+
+    const colRanking = Object.entries(colMap)
+      .map(([id, qty]) => ({ name: collaborators.find(c => c.id === id)?.name || id, total: qty }))
+      .sort((a, b) => b.total - a.total).slice(0, 5);
+
+    const prodRanking = Object.entries(prodMap)
+      .map(([id, qty]) => {
+        const p = products.find(prod => prod.id === id);
+        return { name: p?.name || id, value: qty, percent: totalQty > 0 ? ((qty / totalQty) * 100).toFixed(1) : "0" };
+      })
+      .sort((a, b) => b.value - a.value).slice(0, 5);
+
+    // Crescimento
+    const prevMonth = selectedMonth === 1 ? 12 : selectedMonth - 1;
+    const prevYear = selectedMonth === 1 ? selectedYear - 1 : selectedYear;
+    const prevTotal = movements.filter(m => {
+      const [, mon, y] = m.date.split('/').map(Number);
+      return m.unit === unit && mon === prevMonth && y === prevYear;
+    }).reduce((acc, m) => acc + m.quantity, 0);
+
+    const growth = prevTotal === 0 ? 0 : ((totalQty - prevTotal) / prevTotal) * 100;
+
+    // Acumulado Geral
+    const accColMap: Record<string, number> = {};
+    movements.filter(m => m.unit === unit).forEach(m => {
+      accColMap[m.collaboratorId] = (accColMap[m.collaboratorId] || 0) + m.quantity;
+    });
+    const accRanking = Object.entries(accColMap)
+      .map(([id, qty]) => ({ name: collaborators.find(c => c.id === id)?.name || id, total: qty }))
+      .sort((a, b) => b.total - a.total).slice(0, 5);
+
+    return { totalQty, colRanking, prodRanking, growth, accRanking, prevTotal };
+  }, [filteredMovements, movements, unit, selectedMonth, selectedYear, collaborators, products]);
+
+  // --- FUNÇÕES DE EXPORTAÇÃO ---
 
   const getCollaboratorName = (id: string) => collaborators.find(c => c.id === id)?.name || id;
   const getProductName = (id: string) => products.find(p => p.id === id)?.name || id;
@@ -51,30 +98,151 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
   const lastDayOfMonth = new Date(selectedYear, selectedMonth, 0).getDate();
   const dateRange = `01/${selectedMonth.toString().padStart(2, '0')}/${selectedYear} a ${lastDayOfMonth}/${selectedMonth.toString().padStart(2, '0')}/${selectedYear}`;
 
+  const handleDownloadPDF = () => {
+    setGenerating('pdf');
+    setTimeout(() => {
+      try {
+        const doc = new jsPDF();
+        const primaryColor = unit === 'sede' ? [20, 33, 61] : [154, 78, 18]; // Azul Navy vs Laranja Brown
+        
+        // 1. Cabeçalho Principal
+        doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.rect(0, 0, 210, 40, 'F');
+        
+        doc.setFontSize(22);
+        doc.setTextColor(255, 255, 255);
+        doc.text('ASSEFAZ LOGÍSTICA', 14, 20);
+        
+        doc.setFontSize(10);
+        doc.text(`RELATÓRIO GERENCIAL DE CONSUMO - UNIDADE ${unit.toUpperCase()}`, 14, 28);
+        doc.text(`PERÍODO: ${periodLabel}`, 14, 34);
+
+        // 2. Quadro de Indicadores (KPIs)
+        let currentY = 50;
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setFontSize(12);
+        doc.text('RESUMO DE INDICADORES (KPIs)', 14, currentY);
+        doc.line(14, currentY + 2, 196, currentY + 2);
+
+        (doc as any).autoTable({
+          startY: currentY + 6,
+          head: [['TOTAL RETIRADO', 'LÍDER RETIRADAS', 'ITEM MAIS SAÍDO', 'CRESCIMENTO']],
+          body: [[
+            stats.totalQty,
+            stats.colRanking[0]?.name.toUpperCase() || 'N/A',
+            stats.prodRanking[0]?.name.toUpperCase() || 'N/A',
+            `${stats.growth.toFixed(1)}%`
+          ]],
+          theme: 'grid',
+          headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105], fontSize: 8 },
+          bodyStyles: { fontSize: 10, fontStyle: 'bold', textColor: primaryColor }
+        });
+
+        // 3. Rankings do Mês
+        currentY = (doc as any).lastAutoTable.finalY + 15;
+        doc.setFontSize(12);
+        doc.text('RANKINGS DE CONSUMO MENSAL', 14, currentY);
+        
+        // Colaboradores
+        (doc as any).autoTable({
+          startY: currentY + 5,
+          head: [['RANK', 'TOP 5 COLABORADORES', 'QTD TOTAL']],
+          body: stats.colRanking.map((c, i) => [i + 1, c.name.toUpperCase(), c.total]),
+          headStyles: { fillColor: primaryColor, fontSize: 8 },
+          columnStyles: { 0: { cellWidth: 15 }, 2: { cellWidth: 30, halign: 'right' } }
+        });
+
+        // Materiais
+        (doc as any).autoTable({
+          startY: (doc as any).lastAutoTable.finalY + 5,
+          head: [['RANK', 'TOP 5 MATERIAIS MAIS RETIRADOS', 'QTD', '% DO TOTAL']],
+          body: stats.prodRanking.map((p, i) => [i + 1, p.name.toUpperCase(), p.value, `${p.percent}%`]),
+          headStyles: { fillColor: primaryColor, fontSize: 8 },
+          columnStyles: { 0: { cellWidth: 15 }, 2: { cellWidth: 20 }, 3: { cellWidth: 30, halign: 'right' } }
+        });
+
+        // 4. Ranking Geral Acumulado (Integridade Histórica)
+        currentY = (doc as any).lastAutoTable.finalY + 15;
+        if (currentY > 240) { doc.addPage(); currentY = 20; }
+        doc.setFontSize(12);
+        doc.text('RANKING GERAL ACUMULADO (HISTÓRICO)', 14, currentY);
+        (doc as any).autoTable({
+          startY: currentY + 5,
+          head: [['RANK', 'COLABORADOR (HISTÓRICO TOTAL)', 'TOTAL ACUMULADO']],
+          body: stats.accRanking.map((c, i) => [i + 1, c.name.toUpperCase(), c.total]),
+          headStyles: { fillColor: [71, 85, 105], fontSize: 8 },
+          columnStyles: { 0: { cellWidth: 15 }, 2: { cellWidth: 40, halign: 'right' } }
+        });
+
+        // 5. Histórico Detalhado (Obrigatório)
+        doc.addPage();
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setFontSize(14);
+        doc.text('ANEXO: HISTÓRICO COMPLETO DE MOVIMENTAÇÕES', 14, 20);
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text(`Listagem integral cronológica para auditoria do período ${dateRange}`, 14, 25);
+
+        (doc as any).autoTable({
+          startY: 30,
+          head: [['DATA/HORA', 'COLABORADOR', 'MATERIAL RETIRADO', 'QTD', 'UNIDADE', 'RESPONSÁVEL']],
+          body: filteredMovements.map(m => [
+            `${m.date} ${m.time}`,
+            getCollaboratorName(m.collaboratorId).toUpperCase(),
+            getProductName(m.productId).toUpperCase(),
+            m.quantity.toString(),
+            (products.find(p => p.id === m.productId)?.unit || 'UN').toUpperCase(),
+            getStaffName(m.stockStaffId).toUpperCase()
+          ]),
+          headStyles: { fillColor: primaryColor, fontSize: 8 },
+          bodyStyles: { fontSize: 7 },
+          alternateRowStyles: { fillColor: [248, 250, 252] }
+        });
+
+        // Rodapé de Todas as Páginas
+        const pageCount = doc.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setTextColor(148, 163, 184);
+          doc.text(`Página ${i} de ${pageCount} - Documento oficial de controle Assefaz - Gerado em ${new Date().toLocaleString('pt-br')}`, 105, 285, { align: 'center' });
+        }
+
+        doc.save(`Relatorio_Integrado_${unit.toUpperCase()}_${selectedMonth}_${selectedYear}.pdf`);
+      } catch (error) {
+        console.error("Erro ao gerar PDF:", error);
+        alert("Erro ao processar a integridade do relatório.");
+      }
+      setGenerating(null);
+      setDone(true);
+      setTimeout(() => setDone(false), 3000);
+    }, 1200);
+  };
+
   const handleDownloadCSV = () => {
     setGenerating('csv');
     setTimeout(() => {
-      let csvContent = "\ufeffRelatorio Mensal de Logistica - Unidade " + unit.toUpperCase() + "\n";
-      csvContent += "Periodo: " + dateRange + "\n\n";
+      let csvContent = "\ufeffRELATORIO CONSOLIDADO ASSEFAZ - UNIDADE " + unit.toUpperCase() + "\n";
+      csvContent += "PERIODO: " + dateRange + "\n";
+      csvContent += "TOTAL NO PERIODO: " + stats.totalQty + "\n\n";
+      csvContent += "HISTORICO DE SAIDAS\n";
       csvContent += "Data;Hora;Colaborador;Produto;Quantidade;Responsavel\n";
       
       filteredMovements.forEach(m => {
-        const row = [
-          m.date,
-          m.time,
+        csvContent += [
+          m.date, m.time,
           getCollaboratorName(m.collaboratorId),
           getProductName(m.productId),
           m.quantity,
           getStaffName(m.stockStaffId)
-        ].join(';');
-        csvContent += row + "\n";
+        ].join(';') + "\n";
       });
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `Relatorio_${unit.toUpperCase()}_${selectedMonth}_${selectedYear}.csv`);
+      link.setAttribute("download", `Planilha_${unit.toUpperCase()}_${selectedMonth}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -85,76 +253,17 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
     }, 800);
   };
 
-  const handleDownloadPDF = () => {
-    setGenerating('pdf');
-    setTimeout(() => {
-      try {
-        const doc = new jsPDF();
-        const timestamp = new Date().toLocaleString('pt-br');
-        
-        doc.setFontSize(18);
-        doc.setTextColor(20, 33, 61);
-        doc.text('ASSEFAZ LOGÍSTICA', 14, 22);
-        
-        doc.setFontSize(10);
-        doc.setTextColor(100, 116, 139);
-        doc.text(`UNIDADE: ${unit.toUpperCase()}`, 14, 28);
-        doc.text(`PERÍODO: ${dateRange}`, 14, 33);
-        doc.text(`GERADO EM: ${timestamp}`, 14, 38);
-
-        doc.setDrawColor(226, 232, 240);
-        doc.line(14, 42, 196, 42);
-
-        const tableData = filteredMovements.map(m => [
-          `${m.date} ${m.time}`,
-          getCollaboratorName(m.collaboratorId).toUpperCase(),
-          getProductName(m.productId).toUpperCase(),
-          m.quantity.toString(),
-          getStaffName(m.stockStaffId).toUpperCase()
-        ]);
-
-        (doc as any).autoTable({
-          startY: 48,
-          head: [['DATA/HORA', 'COLABORADOR', 'PRODUTO', 'QTD', 'RESPONSÁVEL']],
-          body: tableData,
-          headStyles: { fillColor: [20, 33, 61], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
-          bodyStyles: { fontSize: 7, textColor: [51, 65, 85] },
-          alternateRowStyles: { fillColor: [248, 250, 252] },
-          margin: { top: 48 }
-        });
-
-        const pageCount = doc.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-          doc.setPage(i);
-          doc.setFontSize(8);
-          doc.setTextColor(148, 163, 184);
-          doc.text(`Página ${i} de ${pageCount} - Documento de controle interno Assefaz`, 105, 285, { align: 'center' });
-        }
-
-        doc.save(`Relatorio_${unit.toUpperCase()}_${selectedMonth}_${selectedYear}.pdf`);
-      } catch (error) {
-        console.error("Erro ao gerar PDF:", error);
-        alert("Erro ao gerar PDF.");
-      }
-      setGenerating(null);
-      setDone(true);
-      setTimeout(() => setDone(false), 3000);
-    }, 1000);
-  };
-
   const theme = {
     badgeText: unit === 'sede' ? 'text-[#14213D]' : 'text-[#9A4E12]',
     primaryIcon: unit === 'sede' ? 'text-[#14213D]' : 'text-[#9A4E12]',
     primaryFocus: unit === 'sede' ? 'focus:border-[#14213D]' : 'focus:border-[#9A4E12]',
   };
 
-  const selectClass = `appearance-none bg-white border border-slate-200 px-10 py-2.5 text-[10px] font-bold uppercase tracking-widest outline-none ${theme.primaryFocus} shadow-sm transition-all min-w-[160px] cursor-pointer`;
-
   return (
     <div className="space-y-6 sm:space-y-10 pb-10">
       <header className="border-b border-slate-200 pb-6 print:hidden">
-        <h1 className="text-xl sm:text-2xl font-bold text-[#14213D] uppercase tracking-tighter">Emissão de Relatórios</h1>
-        <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-medium">Documentação Oficial Mensal</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-[#14213D] uppercase tracking-tighter">Exportação Gerencial</h1>
+        <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-medium">Validação e Emissão de Documentos de Auditoria</p>
       </header>
 
       {/* Seletor de Período */}
@@ -164,7 +273,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
           <select 
             value={selectedMonth} 
             onChange={(e) => setSelectedMonth(Number(e.target.value))} 
-            className={selectClass}
+            className={`appearance-none bg-white border border-slate-200 px-10 py-2.5 text-[10px] font-bold uppercase tracking-widest outline-none ${theme.primaryFocus} shadow-sm transition-all min-w-[160px]`}
           >
             {months.map(m => <option key={m.value} value={m.value}>{m.label.toUpperCase()}</option>)}
           </select>
@@ -176,7 +285,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
           <select 
             value={selectedYear} 
             onChange={(e) => setSelectedYear(Number(e.target.value))} 
-            className={selectClass}
+            className={`appearance-none bg-white border border-slate-200 px-10 py-2.5 text-[10px] font-bold uppercase tracking-widest outline-none ${theme.primaryFocus} shadow-sm transition-all min-w-[120px]`}
           >
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
@@ -184,104 +293,117 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 p-8 sm:p-16 flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden">
+      <div className="bg-white border border-slate-200 p-8 sm:p-12 shadow-sm relative overflow-hidden">
         {done && (
           <div className="absolute top-4 right-4 animate-in slide-in-from-right-4 duration-300 print:hidden">
              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-2 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-               <CheckCircle className="w-3 h-3" /> Concluído
+               <CheckCircle className="w-3 h-3" /> Relatório Validado
              </div>
           </div>
         )}
 
-        <div className="bg-slate-50 w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center border border-slate-100 mb-6 sm:mb-8 shrink-0 print:hidden">
-          <FileText className={`w-10 h-10 sm:w-12 sm:h-12 ${theme.primaryIcon} opacity-80`} />
-        </div>
-        
-        <div className="mb-8 sm:mb-12">
-          <h2 className="text-lg sm:text-xl font-bold text-slate-800 uppercase tracking-tighter mb-2">Relatório Consolidado de Insumos</h2>
-          <div className="flex flex-col gap-2 items-center">
-            <p className={`text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-bold border border-slate-100 px-4 py-1 inline-block ${theme.badgeText}`}>
-              Unidade ASSEFAZ {unit.toUpperCase()}
-            </p>
-            <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest">
-              {periodLabel}
-            </p>
+        <div className="max-w-4xl mx-auto flex flex-col items-center">
+          <div className="bg-slate-50 w-20 h-20 flex items-center justify-center border border-slate-100 mb-8 print:hidden">
+            <FileText className={`w-10 h-10 ${theme.primaryIcon} opacity-80`} />
           </div>
-          <p className="text-[11px] sm:text-xs text-slate-400 mt-6 max-w-sm mx-auto leading-relaxed print:hidden">
-            Documento abrangendo de {dateRange}. Total de {filteredMovements.length} movimentações localizadas no período.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 w-full max-w-2xl border border-slate-100 print:hidden">
-          <button 
-            onClick={handleDownloadPDF}
-            disabled={!!generating || filteredMovements.length === 0}
-            className="flex flex-col items-center gap-3 p-8 sm:p-10 bg-white hover:bg-slate-50 border-b md:border-b-0 md:border-r border-slate-100 transition-all group disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            {generating === 'pdf' ? (
-              <Loader2 className="w-5 h-5 text-[#14213D] animate-spin" />
-            ) : (
-              <Download className="w-5 h-5 text-slate-300 group-hover:text-[#14213D] transition-colors" />
-            )}
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">PDF Oficial</span>
-          </button>
           
-          <button 
-            onClick={handleDownloadCSV}
-            disabled={!!generating || filteredMovements.length === 0}
-            className="flex flex-col items-center gap-3 p-8 sm:p-10 bg-white hover:bg-slate-50 border-b md:border-b-0 md:border-r border-slate-100 transition-all group disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            {generating === 'csv' ? (
-              <Loader2 className="w-5 h-5 text-[#14213D] animate-spin" />
-            ) : (
-              <FileSpreadsheet className="w-5 h-5 text-slate-300 group-hover:text-[#14213D] transition-colors" />
-            )}
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Planilha Excel</span>
-          </button>
+          <div className="text-center mb-10">
+            <h2 className="text-xl font-bold text-slate-800 uppercase tracking-tighter mb-4">Relatório Integrado de Auditoria</h2>
+            <div className="flex flex-wrap gap-4 justify-center items-center">
+              <span className={`text-[9px] uppercase tracking-widest font-bold border ${unit === 'sede' ? 'border-blue-100 bg-blue-50 text-blue-700' : 'border-amber-100 bg-amber-50 text-amber-700'} px-4 py-1`}>
+                UNIDADE {unit.toUpperCase()}
+              </span>
+              <span className="text-[9px] uppercase tracking-widest font-bold bg-slate-100 text-slate-600 px-4 py-1">
+                PERÍODO: {periodLabel}
+              </span>
+            </div>
+          </div>
 
-          <button 
-            onClick={() => window.print()}
-            disabled={filteredMovements.length === 0}
-            className="flex flex-col items-center gap-3 p-8 sm:p-10 bg-white hover:bg-slate-50 transition-all group disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            <Printer className="w-5 h-5 text-slate-300 group-hover:text-[#14213D] transition-colors" />
-            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Imprimir</span>
-          </button>
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+             <div className="bg-slate-50/50 p-4 border-l-4 border-slate-200 text-center">
+                <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">Total Período</p>
+                <p className="text-lg font-black text-slate-700">{stats.totalQty}</p>
+             </div>
+             <div className="bg-slate-50/50 p-4 border-l-4 border-slate-200 text-center">
+                <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">Movimentações</p>
+                <p className="text-lg font-black text-slate-700">{filteredMovements.length}</p>
+             </div>
+             <div className="bg-slate-50/50 p-4 border-l-4 border-slate-200 text-center">
+                <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">Top Colaborador</p>
+                <p className="text-[10px] font-black text-slate-700 uppercase truncate">{stats.colRanking[0]?.name || 'N/A'}</p>
+             </div>
+             <div className="bg-slate-50/50 p-4 border-l-4 border-slate-200 text-center">
+                <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">Crescimento</p>
+                <p className={`text-lg font-black ${stats.growth > 0 ? 'text-red-600' : 'text-green-600'}`}>{stats.growth.toFixed(1)}%</p>
+             </div>
+          </div>
+
+          <div className="w-full flex flex-col md:flex-row gap-0 border border-slate-100 print:hidden mb-12">
+            <button 
+              onClick={handleDownloadPDF}
+              disabled={!!generating || filteredMovements.length === 0}
+              className="flex-1 flex flex-col items-center gap-3 p-10 bg-white hover:bg-slate-50 border-b md:border-b-0 md:border-r border-slate-100 transition-all group disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              {generating === 'pdf' ? <Loader2 className="w-5 h-5 text-slate-800 animate-spin" /> : <Download className="w-5 h-5 text-slate-300 group-hover:text-slate-800 transition-colors" />}
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Relatório PDF Completo</span>
+            </button>
+            
+            <button 
+              onClick={handleDownloadCSV}
+              disabled={!!generating || filteredMovements.length === 0}
+              className="flex-1 flex flex-col items-center gap-3 p-10 bg-white hover:bg-slate-50 border-b md:border-b-0 md:border-r border-slate-100 transition-all group disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              {generating === 'csv' ? <Loader2 className="w-5 h-5 text-slate-800 animate-spin" /> : <FileSpreadsheet className="w-5 h-5 text-slate-300 group-hover:text-slate-800 transition-colors" />}
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Dados Brutos (CSV)</span>
+            </button>
+
+            <button 
+              onClick={() => window.print()}
+              disabled={filteredMovements.length === 0}
+              className="flex-1 flex flex-col items-center gap-3 p-10 bg-white hover:bg-slate-50 transition-all group disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Printer className="w-5 h-5 text-slate-300 group-hover:text-slate-800 transition-colors" />
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Imprimir Visualização</span>
+            </button>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-100 p-6 flex items-start gap-4 text-left print:hidden">
+            <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-[10px] font-bold text-amber-800 uppercase mb-1">Garantia de Integridade</p>
+              <p className="text-[10px] text-amber-600 leading-relaxed uppercase font-medium">
+                O arquivo PDF exportado conterá automaticamente os rankings mensais, indicadores de crescimento, ranking acumulado e histórico detalhado, validando todos os dados visualizados no Dashboard.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Visualização de Impressão (Apenas Ctrl+P) */}
+        {/* Visualização de Impressão nativa */}
         <div className="hidden print:block text-left w-full mt-10">
-           <div className="mb-10 border-b-2 border-slate-900 pb-4">
-              <h3 className="text-2xl font-bold uppercase tracking-tighter">Relatório de Logística - Unidade {unit.toUpperCase()}</h3>
-              <p className="text-xs uppercase font-bold text-slate-600">Período: {dateRange}</p>
-              <p className="text-[9px] uppercase text-slate-400">Emissão: {new Date().toLocaleString('pt-br')}</p>
+           <div className="mb-10 border-b-4 border-slate-900 pb-4">
+              <h3 className="text-3xl font-black uppercase tracking-tighter">RELATÓRIO DE LOGÍSTICA - ASSEFAZ {unit.toUpperCase()}</h3>
+              <p className="text-sm uppercase font-bold text-slate-600">Período Selecionado: {periodLabel}</p>
            </div>
-           <table className="w-full text-[9px] border-collapse">
+           <table className="w-full text-[9px] border-collapse mb-10">
              <thead>
                <tr className="border-b-2 border-slate-900 bg-slate-100">
                  <th className="py-2 px-1 text-left uppercase font-bold">Data/Hora</th>
-                 <th className="py-2 px-1 text-left uppercase font-bold">Solicitante</th>
-                 <th className="py-2 px-1 text-left uppercase font-bold">Produto</th>
+                 <th className="py-2 px-1 text-left uppercase font-bold">Colaborador</th>
+                 <th className="py-2 px-1 text-left uppercase font-bold">Material</th>
                  <th className="py-2 px-1 text-center uppercase font-bold">Qtd</th>
                  <th className="py-2 px-1 text-right uppercase font-bold">Responsável</th>
                </tr>
              </thead>
              <tbody className="divide-y divide-slate-200">
-               {filteredMovements.length > 0 ? (
-                 filteredMovements.map(m => (
-                   <tr key={m.id}>
-                     <td className="py-2 px-1 whitespace-nowrap">{m.date} {m.time}</td>
-                     <td className="py-2 px-1 uppercase font-medium">{getCollaboratorName(m.collaboratorId)}</td>
-                     <td className="py-2 px-1 uppercase">{getProductName(m.productId)}</td>
-                     <td className="py-2 px-1 text-center font-bold">{m.quantity}</td>
-                     <td className="py-2 px-1 text-right uppercase text-slate-500">{getStaffName(m.stockStaffId)}</td>
-                   </tr>
-                 ))
-               ) : (
-                 <tr>
-                   <td colSpan={5} className="py-10 text-center uppercase font-bold text-slate-300 tracking-widest">Nenhum registro no período</td>
+               {filteredMovements.map(m => (
+                 <tr key={m.id}>
+                   <td className="py-2 px-1">{m.date} {m.time}</td>
+                   <td className="py-2 px-1 uppercase font-bold">{getCollaboratorName(m.collaboratorId)}</td>
+                   <td className="py-2 px-1 uppercase">{getProductName(m.productId)}</td>
+                   <td className="py-2 px-1 text-center font-bold">{m.quantity}</td>
+                   <td className="py-2 px-1 text-right uppercase text-slate-500">{getStaffName(m.stockStaffId)}</td>
                  </tr>
-               )}
+               ))}
              </tbody>
            </table>
         </div>
