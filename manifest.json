@@ -1,7 +1,7 @@
 
 {
   "short_name": "Logística",
-  "name": "Assefaz Logística",
+  "name": "Logística",
   "description": "Controle de Estoque e Insumos Assefaz",
   "icons": [
     {
@@ -27,6 +27,6 @@
   "display": "standalone",
   "orientation": "any",
   "theme_color": "#14213D",
-  "background_color": "#F4F6F8",
+  "background_color": "#14213D",
   "categories": ["business", "productivity", "utilities"]
 }

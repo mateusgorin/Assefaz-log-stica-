@@ -4,11 +4,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Logística | Assefaz</title>
+    <title>Logística</title>
     
     <!-- PWA & Icons -->
     <link rel="manifest" href="manifest.json" />
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/ZqTLQrVF/Picsart-26-02-17-23-27-29-240.png" />
     <link rel="apple-touch-icon" href="https://i.postimg.cc/ZqTLQrVF/Picsart-26-02-17-23-27-29-240.png" />
     <meta name="theme-color" content="#14213D" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -51,8 +51,8 @@
     "jspdf-autotable": "https://esm.sh/jspdf-autotable@3.8.2?external=jspdf",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.7",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4",
-    "vite": "https://esm.sh/vite@^7.3.1"
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4"
   }
 }
 </script>
@@ -64,7 +64,7 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js').then(reg => {
-            reg.update(); // Força a atualização do ícone
+            reg.update();
           }).catch(err => console.log('SW registration failed:', err));
         });
       }

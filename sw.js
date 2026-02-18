@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'logistica-v2'; // Versão incrementada
+const CACHE_NAME = 'logistica-v3'; 
 const ASSETS = [
   '/',
   '/index.html',
@@ -8,7 +8,7 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Força a ativação imediata
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
