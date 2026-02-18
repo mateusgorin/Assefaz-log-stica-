@@ -1,23 +1,25 @@
-
 export type Unit = 'sede' | '506';
 
 export interface Product {
   id: string;
   name: string;
   category: string;
-  unit: string;
+  unit: string; // Unidade de medida (Litro, Unidade, etc)
   stock: number;
+  location: Unit; // Unidade física (Sede ou 506)
 }
 
 export interface Collaborator {
   id: string;
   name: string;
   department: string;
+  location: Unit;
 }
 
 export interface StockStaff {
   id: string;
   name: string;
+  location: Unit;
 }
 
 export interface Movement {

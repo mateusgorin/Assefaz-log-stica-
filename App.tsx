@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { MENU_ITEMS } from './constants.tsx';
 import { Unit, View, Movement, Product, Collaborator, StockStaff } from './types.ts';
@@ -32,14 +31,15 @@ const App: React.FC = () => {
   const [movements, setMovements] = useState<Movement[]>([]);
 
   const fetchData = useCallback(async () => {
-    if (!configured) return;
+    if (!configured || !activeUnit) return;
     setLoading(true);
     try {
+      // Filtrando todas as tabelas pela unidade ativa
       const [prods, cols, staff, movs] = await Promise.all([
-        supabase.from('products').select('*').order('name'),
-        supabase.from('collaborators').select('*').order('name'),
-        supabase.from('stock_staff').select('*').order('name'),
-        supabase.from('movements').select('*').order('created_at', { ascending: false })
+        supabase.from('products').select('*').eq('location', activeUnit).order('name'),
+        supabase.from('collaborators').select('*').eq('location', activeUnit).order('name'),
+        supabase.from('stock_staff').select('*').eq('location', activeUnit).order('name'),
+        supabase.from('movements').select('*').eq('unit', activeUnit).order('created_at', { ascending: false })
       ]);
 
       if (prods.data) setProducts(prods.data);
@@ -66,13 +66,13 @@ const App: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [configured]);
+  }, [configured, activeUnit]);
 
   useEffect(() => {
-    if (configured) {
+    if (configured && activeUnit) {
       fetchData();
     }
-  }, [configured, fetchData]);
+  }, [configured, activeUnit, fetchData]);
 
   const openConfirm = (title: string, message: string, onConfirm: () => void) => {
     setConfirmModal({ isOpen: true, title, message, onConfirm });
@@ -153,21 +153,24 @@ const App: React.FC = () => {
     }
   }, [products, fetchData]);
 
-  const handleAddProduct = useCallback(async (p: Omit<Product, 'id'>) => {
-    const { error } = await supabase.from('products').insert([p]);
+  const handleAddProduct = useCallback(async (p: Omit<Product, 'id' | 'location'>) => {
+    if (!activeUnit) return;
+    const { error } = await supabase.from('products').insert([{ ...p, location: activeUnit }]);
     if (!error) await fetchData();
-  }, [fetchData]);
+  }, [fetchData, activeUnit]);
 
-  const handleAddCollaborator = useCallback(async (c: Omit<Collaborator, 'id'>) => {
-    const { error } = await supabase.from('collaborators').insert([c]);
+  const handleAddCollaborator = useCallback(async (c: Omit<Collaborator, 'id' | 'location'>) => {
+    if (!activeUnit) return;
+    const { error } = await supabase.from('collaborators').insert([{ ...c, location: activeUnit }]);
     if (error) alert(`ERRO AO ADICIONAR COLABORADORA: ${error.message}`);
     else await fetchData();
-  }, [fetchData]);
+  }, [fetchData, activeUnit]);
 
-  const handleAddStaff = useCallback(async (s: Omit<StockStaff, 'id'>) => {
-    const { error } = await supabase.from('stock_staff').insert([s]);
+  const handleAddStaff = useCallback(async (s: Omit<StockStaff, 'id' | 'location'>) => {
+    if (!activeUnit) return;
+    const { error } = await supabase.from('stock_staff').insert([{ ...s, location: activeUnit }]);
     if (!error) await fetchData();
-  }, [fetchData]);
+  }, [fetchData, activeUnit]);
 
   const handleDeleteMovement = useCallback((id: string) => {
     openConfirm("Excluir Registro?", "O histórico de saída será apagado.", async () => {
@@ -251,7 +254,7 @@ const App: React.FC = () => {
       {confirmModal.isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeConfirm} />
-          <div className={`relative bg-white w-full max-w-sm p-8 shadow-2xl border-t-8 ${theme.confirmBorder} animate-in zoom-in duration-200`}>
+          <div className={`relative bg-white w-full max-sm p-8 shadow-2xl border-t-8 ${theme.confirmBorder} animate-in zoom-in duration-200`}>
             <button onClick={closeConfirm} className="absolute top-4 right-4 text-slate-300 hover:text-slate-600 transition-colors">
               <X className="w-5 h-5" />
             </button>
@@ -303,7 +306,7 @@ const App: React.FC = () => {
           ))}
         </nav>
         <div className="p-8 border-t border-white/5 bg-black/5 text-center">
-          <p className="text-xs font-semibold text-white/80">Mateus Gorin</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] font-medium text-white/10">Desenvolvido por Mateus Miranda</p>
         </div>
       </aside>
 
