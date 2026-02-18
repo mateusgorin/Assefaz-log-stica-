@@ -1,15 +1,16 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
-import { MENU_ITEMS } from './constants';
-import { Unit, View, Movement, Product, Collaborator, StockStaff } from './types';
-import { supabase, isConfigured } from './lib/supabase';
-import Dashboard from './components/Dashboard';
-import OutflowForm from './components/OutflowForm';
-import EntryForm from './components/EntryForm';
-import History from './components/History';
-import Management from './components/Management';
-import Reports from './components/Reports';
-import Inventory from './components/Inventory';
-import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, ExternalLink, PlusCircle, Trash2, X, MapPin, Building } from 'lucide-react';
+import { MENU_ITEMS } from './constants.tsx';
+import { Unit, View, Movement, Product, Collaborator, StockStaff } from './types.ts';
+import { supabase, isConfigured } from './lib/supabase.ts';
+import Dashboard from './components/Dashboard.tsx';
+import OutflowForm from './components/OutflowForm.tsx';
+import EntryForm from './components/EntryForm.tsx';
+import History from './components/History.tsx';
+import Management from './components/Management.tsx';
+import Reports from './components/Reports.tsx';
+import Inventory from './components/Inventory.tsx';
+import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeUnit, setActiveUnit] = useState<Unit | null>(null);
@@ -18,7 +19,6 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [configured, setConfigured] = useState(isConfigured());
 
-  // Estado para Modal de Confirmação Customizado
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -201,7 +201,6 @@ const App: React.FC = () => {
   if (!activeUnit) {
     return (
       <div className="flex flex-col lg:flex-row h-screen w-screen overflow-hidden">
-        {/* UNIDADE SEDE */}
         <div 
           className="group relative flex-1 bg-[#14213D] flex flex-col items-center justify-center p-12 cursor-pointer transition-all duration-700 hover:flex-[1.2]" 
           onClick={() => setActiveUnit('sede')}
@@ -218,7 +217,6 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* UNIDADE 506 */}
         <div 
           className="group relative flex-1 bg-[#9A4E12] flex flex-col items-center justify-center p-12 cursor-pointer transition-all duration-700 hover:flex-[1.2]" 
           onClick={() => setActiveUnit('506')}
@@ -242,7 +240,6 @@ const App: React.FC = () => {
     menuBg: activeUnit === 'sede' ? 'bg-[#14213D]' : 'bg-[#9A4E12]',
     itemActiveDetail: activeUnit === 'sede' ? 'border-[#B45309]' : 'border-[#14213D]',
     badgeBg: activeUnit === 'sede' ? 'bg-[#14213D]' : 'bg-[#9A4E12]',
-    // Cores para o Modal de Confirmação
     confirmBorder: activeUnit === 'sede' ? 'border-[#14213D]' : 'border-[#9A4E12]',
     confirmIconBg: activeUnit === 'sede' ? 'bg-[#14213D]/10' : 'bg-[#9A4E12]/10',
     confirmIconText: activeUnit === 'sede' ? 'text-[#14213D]' : 'text-[#9A4E12]',
@@ -251,7 +248,6 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-[#F4F6F8]">
-      {/* MODAL DE CONFIRMAÇÃO CUSTOMIZADO E DINÂMICO */}
       {confirmModal.isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeConfirm} />
