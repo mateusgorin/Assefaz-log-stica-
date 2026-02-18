@@ -9,7 +9,7 @@ import History from './components/History';
 import Management from './components/Management';
 import Reports from './components/Reports';
 import Inventory from './components/Inventory';
-import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, ExternalLink, PlusCircle, Trash2, X } from 'lucide-react';
+import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, ExternalLink, PlusCircle, Trash2, X, MapPin, Building } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeUnit, setActiveUnit] = useState<Unit | null>(null);
@@ -201,13 +201,38 @@ const App: React.FC = () => {
   if (!activeUnit) {
     return (
       <div className="flex flex-col lg:flex-row h-screen w-screen overflow-hidden">
-        <div className="flex-1 bg-[#14213D] flex flex-col items-center justify-center p-12 cursor-pointer transition-all hover:flex-[1.1]" onClick={() => setActiveUnit('sede')}>
-          <h1 className="text-white text-4xl font-light tracking-widest uppercase mb-8">Sede</h1>
-          <button className="bg-white text-[#14213D] px-10 py-3 font-bold uppercase tracking-widest text-sm">Acessar unidade</button>
+        {/* UNIDADE SEDE */}
+        <div 
+          className="group relative flex-1 bg-[#14213D] flex flex-col items-center justify-center p-12 cursor-pointer transition-all duration-700 hover:flex-[1.2]" 
+          onClick={() => setActiveUnit('sede')}
+        >
+          <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none transition-transform duration-700 group-hover:scale-110">
+            <Building className="w-[80%] h-[80%] text-white" />
+          </div>
+          <div className="relative z-10 flex flex-col items-center">
+            <h1 className="text-white text-5xl font-black tracking-widest uppercase mb-4 drop-shadow-2xl">Sede</h1>
+            <p className="text-white/40 text-[10px] uppercase tracking-[0.4em] mb-12 font-bold">Administração Central</p>
+            <button className="bg-white text-[#14213D] px-12 py-4 font-black uppercase tracking-widest text-xs transition-all duration-300 shadow-xl group-hover:shadow-[#00000040] group-hover:-translate-y-1">
+              Acessar unidade
+            </button>
+          </div>
         </div>
-        <div className="flex-1 bg-[#9A4E12] flex flex-col items-center justify-center p-12 cursor-pointer transition-all hover:flex-[1.1]" onClick={() => setActiveUnit('506')}>
-          <h1 className="text-white text-4xl font-light tracking-widest uppercase mb-8">506</h1>
-          <button className="bg-white text-[#9A4E12] px-10 py-3 font-bold uppercase tracking-widest text-sm">Acessar unidade</button>
+
+        {/* UNIDADE 506 */}
+        <div 
+          className="group relative flex-1 bg-[#9A4E12] flex flex-col items-center justify-center p-12 cursor-pointer transition-all duration-700 hover:flex-[1.2]" 
+          onClick={() => setActiveUnit('506')}
+        >
+          <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none transition-transform duration-700 group-hover:scale-110">
+            <MapPin className="w-[80%] h-[80%] text-white" />
+          </div>
+          <div className="relative z-10 flex flex-col items-center">
+            <h1 className="text-white text-5xl font-black tracking-widest uppercase mb-4 drop-shadow-2xl">506</h1>
+            <p className="text-white/40 text-[10px] uppercase tracking-[0.4em] mb-12 font-bold">Unidade de Apoio</p>
+            <button className="bg-white text-[#9A4E12] px-12 py-4 font-black uppercase tracking-widest text-xs transition-all duration-300 shadow-xl group-hover:shadow-[#00000040] group-hover:-translate-y-1">
+              Acessar unidade
+            </button>
+          </div>
         </div>
       </div>
     );
