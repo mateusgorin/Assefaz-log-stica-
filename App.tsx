@@ -34,7 +34,6 @@ const App: React.FC = () => {
     if (!configured || !activeUnit) return;
     setLoading(true);
     try {
-      // Filtrando todas as tabelas pela unidade ativa
       const [prods, cols, staff, movs] = await Promise.all([
         supabase.from('products').select('*').eq('location', activeUnit).order('name'),
         supabase.from('collaborators').select('*').eq('location', activeUnit).order('name'),
@@ -42,9 +41,9 @@ const App: React.FC = () => {
         supabase.from('movements').select('*').eq('unit', activeUnit).order('created_at', { ascending: false })
       ]);
 
-      if (prods.data) setProducts(prods.data);
-      if (cols.data) setCollaborators(cols.data);
-      if (staff.data) setStockStaff(staff.data);
+      setProducts(prods.data || []);
+      setCollaborators(cols.data || []);
+      setStockStaff(staff.data || []);
       
       if (movs.data) {
         const formattedMovs: Movement[] = movs.data.map(m => ({
@@ -60,9 +59,11 @@ const App: React.FC = () => {
           unit: m.unit as Unit
         }));
         setMovements(formattedMovs);
+      } else {
+        setMovements([]);
       }
     } catch (error) {
-      console.error("Erro ao buscar dados:", error);
+      console.error("Erro ao sincronizar:", error);
     } finally {
       setLoading(false);
     }
@@ -98,7 +99,7 @@ const App: React.FC = () => {
     }]).select();
 
     if (error) {
-      alert(`Erro ao registrar: ${error.message}`);
+      console.error(error);
       return;
     }
 
@@ -118,11 +119,7 @@ const App: React.FC = () => {
       "Esta ação é permanente e removerá todos os registros associados.", 
       async () => {
         const { error } = await supabase.from('collaborators').delete().eq('id', id);
-        if (error) {
-          alert(`FALHA NA EXCLUSÃO: ${error.message}`);
-        } else {
-          await fetchData();
-        }
+        if (!error) await fetchData();
         closeConfirm();
       }
     );
@@ -134,11 +131,7 @@ const App: React.FC = () => {
       "O item será excluído do catálogo permanentemente.", 
       async () => {
         const { error } = await supabase.from('products').delete().eq('id', id);
-        if (error) {
-          alert(`ERRO AO EXCLUIR PRODUTO: ${error.message}`);
-        } else {
-          await fetchData();
-        }
+        if (!error) await fetchData();
         closeConfirm();
       }
     );
@@ -162,8 +155,7 @@ const App: React.FC = () => {
   const handleAddCollaborator = useCallback(async (c: Omit<Collaborator, 'id' | 'location'>) => {
     if (!activeUnit) return;
     const { error } = await supabase.from('collaborators').insert([{ ...c, location: activeUnit }]);
-    if (error) alert(`ERRO AO ADICIONAR COLABORADORA: ${error.message}`);
-    else await fetchData();
+    if (!error) await fetchData();
   }, [fetchData, activeUnit]);
 
   const handleAddStaff = useCallback(async (s: Omit<StockStaff, 'id' | 'location'>) => {
@@ -211,8 +203,8 @@ const App: React.FC = () => {
           <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none transition-transform duration-700 group-hover:scale-110">
             <Building className="w-[80%] h-[80%] text-white" />
           </div>
-          <div className="relative z-10 flex flex-col items-center">
-            <h1 className="text-white text-5xl font-black tracking-widest uppercase mb-4 drop-shadow-2xl">Sede</h1>
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <h1 className="text-white text-4xl sm:text-5xl font-black tracking-widest uppercase mb-4 drop-shadow-2xl">Sede</h1>
             <p className="text-white/40 text-[10px] uppercase tracking-[0.4em] mb-12 font-bold">Administração Central</p>
             <button className="bg-white text-[#14213D] px-12 py-4 font-black uppercase tracking-widest text-xs transition-all duration-300 shadow-xl group-hover:shadow-[#00000040] group-hover:-translate-y-1">
               Acessar unidade
@@ -227,8 +219,8 @@ const App: React.FC = () => {
           <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none transition-transform duration-700 group-hover:scale-110">
             <MapPin className="w-[80%] h-[80%] text-white" />
           </div>
-          <div className="relative z-10 flex flex-col items-center">
-            <h1 className="text-white text-5xl font-black tracking-widest uppercase mb-4 drop-shadow-2xl">506</h1>
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <h1 className="text-white text-4xl sm:text-5xl font-black tracking-widest uppercase mb-4 drop-shadow-2xl">506</h1>
             <p className="text-white/40 text-[10px] uppercase tracking-[0.4em] mb-12 font-bold">Unidade de Apoio</p>
             <button className="bg-white text-[#9A4E12] px-12 py-4 font-black uppercase tracking-widest text-xs transition-all duration-300 shadow-xl group-hover:shadow-[#00000040] group-hover:-translate-y-1">
               Acessar unidade
@@ -254,7 +246,7 @@ const App: React.FC = () => {
       {confirmModal.isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeConfirm} />
-          <div className={`relative bg-white w-full max-sm p-8 shadow-2xl border-t-8 ${theme.confirmBorder} animate-in zoom-in duration-200`}>
+          <div className={`relative bg-white w-full max-w-sm p-8 shadow-2xl border-t-8 ${theme.confirmBorder} animate-in zoom-in duration-200`}>
             <button onClick={closeConfirm} className="absolute top-4 right-4 text-slate-300 hover:text-slate-600 transition-colors">
               <X className="w-5 h-5" />
             </button>
@@ -306,24 +298,24 @@ const App: React.FC = () => {
           ))}
         </nav>
         <div className="p-8 border-t border-white/5 bg-black/5 text-center">
-          <p className="text-[9px] uppercase tracking-[0.2em] font-medium text-white/10">Desenvolvido por Mateus Miranda</p>
+          <p className="text-[8px] uppercase tracking-[0.3em] font-medium text-white/30">Desenvolvido por Mateus Miranda</p>
         </div>
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0 shadow-sm z-50">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 shrink-0 shadow-sm z-50">
           <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2"><Menu className="w-5 h-5" /></button>
-            <span className="text-sm font-bold text-slate-800 uppercase flex items-center gap-2">Controle Logístico {loading && <Loader2 className="w-3 h-3 animate-spin text-slate-300" />}</span>
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2"><Menu className="w-5 h-5 text-slate-500" /></button>
+            <span className="text-sm font-bold text-slate-800 uppercase flex items-center gap-2">Logística {loading && <Loader2 className="w-3 h-3 animate-spin text-slate-300" />}</span>
           </div>
-          <div className="flex items-center gap-6">
-            <button onClick={fetchData} className="p-2 text-slate-400 hover:text-slate-600 transition-colors"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
+          <div className="flex items-center gap-3 sm:gap-6">
+            <button onClick={fetchData} className="p-2 text-slate-400 hover:text-slate-600 transition-colors" title="Sincronizar dados"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
             <div className={`h-8 px-3 flex items-center justify-center text-white text-[10px] font-bold ${theme.badgeBg}`}>{activeUnit.toUpperCase()}</div>
-            <button onClick={() => setActiveUnit(null)} className="text-slate-400 hover:text-red-600 p-1"><LogOut className="w-4 h-4" /></button>
+            <button onClick={() => setActiveUnit(null)} className="text-slate-400 hover:text-red-600 p-1" title="Sair da Unidade"><LogOut className="w-4 h-4" /></button>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6 lg:p-10 custom-scrollbar">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 custom-scrollbar">
           <div className="max-w-6xl mx-auto">
             {currentView === View.DASHBOARD && <Dashboard unit={activeUnit} movements={movements} products={products} collaborators={collaborators} />}
             {currentView === View.OUTFLOW && <OutflowForm unit={activeUnit} products={products} collaborators={collaborators} stockStaff={stockStaff} onAddMovement={handleAddMovement} onNavigate={(view) => setCurrentView(view)} />}

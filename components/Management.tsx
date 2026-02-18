@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Tag, Briefcase, UserCheck, Trash2 } from 'lucide-react';
 import { Product, Collaborator, StockStaff, Unit } from '../types';
@@ -8,9 +7,9 @@ interface ManagementProps {
   products: Product[];
   collaborators: Collaborator[];
   stockStaff: StockStaff[];
-  onAddProduct: (p: Omit<Product, 'id'>) => void;
-  onAddCollaborator: (c: Omit<Collaborator, 'id'>) => void;
-  onAddStaff: (s: Omit<StockStaff, 'id'>) => void;
+  onAddProduct: (p: Omit<Product, 'id' | 'location'>) => void;
+  onAddCollaborator: (c: Omit<Collaborator, 'id' | 'location'>) => void;
+  onAddStaff: (s: Omit<StockStaff, 'id' | 'location'>) => void;
   onDeleteProduct: (id: string) => void;
   onDeleteCollaborator: (id: string) => void;
   onDeleteStaff: (id: string) => void;
@@ -128,7 +127,7 @@ const Management: React.FC<ManagementProps> = ({
           </div>
         </div>
 
-        {/* Equipe de Suprimentos (Administradores/Operadores) */}
+        {/* Equipe de Suprimentos */}
         <div className="bg-white border border-slate-200 lg:col-span-2 shadow-sm">
           <div className="p-6 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
             <UserCheck className={`w-3 h-3 ${theme.primaryText}`} />
