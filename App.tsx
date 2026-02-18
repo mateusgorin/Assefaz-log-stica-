@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { MENU_ITEMS } from './constants.tsx';
 import { Unit, View, Movement, Product, Collaborator, StockStaff } from './types.ts';
@@ -9,7 +10,7 @@ import History from './components/History.tsx';
 import Management from './components/Management.tsx';
 import Reports from './components/Reports.tsx';
 import Inventory from './components/Inventory.tsx';
-import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building, Download } from 'lucide-react';
+import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeUnit, setActiveUnit] = useState<Unit | null>(null);
@@ -17,7 +18,6 @@ const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [configured, setConfigured] = useState(isConfigured());
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -30,22 +30,6 @@ const App: React.FC = () => {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [stockStaff, setStockStaff] = useState<StockStaff[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
-
-  useEffect(() => {
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    });
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-    }
-  };
 
   const fetchData = useCallback(async () => {
     if (!configured || !activeUnit) return;
@@ -313,18 +297,6 @@ const App: React.FC = () => {
               <span>{item.label}</span>
             </button>
           ))}
-          
-          {deferredPrompt && (
-            <div className="mt-4 px-4">
-              <button 
-                onClick={handleInstallClick}
-                className="w-full flex items-center gap-4 px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all rounded-sm"
-              >
-                <Download className="w-4 h-4 text-[#FCA311]" />
-                Instalar Aplicativo
-              </button>
-            </div>
-          )}
         </nav>
         <div className="p-8 border-t border-white/5 bg-black/5 text-center">
           <p className="text-[8px] uppercase tracking-[0.3em] font-medium text-white/30">Desenvolvido por Mateus Miranda</p>
