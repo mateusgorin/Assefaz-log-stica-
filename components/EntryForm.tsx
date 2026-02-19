@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { PackagePlus, ShoppingCart, Hash, CheckCircle2, Warehouse, Loader2, ArrowDownCircle } from 'lucide-react';
+import { PackagePlus, ShoppingCart, Hash, CheckCircle2, Warehouse, Loader2, ArrowDownCircle, Eye, X, FileText, Printer } from 'lucide-react';
 import { Product, StockStaff, Unit, View, Entry } from '../types';
 import SignaturePad from './SignaturePad';
 
@@ -21,6 +21,7 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [viewingEntry, setViewingEntry] = useState<Entry | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,8 +76,80 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
   const inputClass = (err?: boolean) => `w-full bg-[#F8FAFC] border ${err ? 'border-red-500 bg-red-50' : 'border-slate-200'} rounded-none px-4 py-3.5 text-sm outline-none transition-all ${theme.primaryFocus}`;
   const labelClass = (err?: boolean) => `text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-2 ${err ? 'text-red-600' : 'text-slate-500'}`;
 
+  const getProduct = (id: string) => products.find(p => p.id === id);
+  const getStaff = (id: string) => stockStaff.find(s => s.id === id);
+
   return (
     <div className="space-y-10 pb-20 animate-in fade-in duration-500">
+      {/* MODAL DE VISUALIZAÇÃO DE COMPROVANTE DE ENTRADA */}
+      {viewingEntry && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => setViewingEntry(null)} />
+          <div className={`relative bg-white w-full max-w-2xl shadow-2xl border-t-8 border-emerald-600 animate-in zoom-in duration-200 overflow-hidden`}>
+            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-start">
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center`}>
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-800 uppercase tracking-tighter">Comprovante de Entrada</h3>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">ID: {viewingEntry.id}</p>
+                </div>
+              </div>
+              <button onClick={() => setViewingEntry(null)} className="p-2 hover:bg-slate-100 text-slate-300 hover:text-slate-600 transition-all rounded-full">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 sm:p-8 space-y-8">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                <div>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Operador</p>
+                  <p className="text-[11px] font-black text-slate-700 uppercase">{getStaff(viewingEntry.stockStaffId)?.name || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Item Recebido</p>
+                  <p className="text-[11px] font-black text-slate-700 uppercase">{getProduct(viewingEntry.productId)?.name || 'N/A'}</p>
+                  <p className="text-[9px] text-slate-400 uppercase font-medium">+{viewingEntry.quantity} {getProduct(viewingEntry.productId)?.unit || 'UN'}</p>
+                </div>
+                <div>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Unidade / Data</p>
+                  <p className="text-[11px] font-black text-slate-700 uppercase">{viewingEntry.unit.toUpperCase()}</p>
+                  <p className="text-[9px] text-slate-400 uppercase font-medium">{viewingEntry.date} às {viewingEntry.time}</p>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-100 p-6">
+                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Assinatura do Operador de Recebimento</p>
+                <div className="bg-white border border-slate-100 h-32 flex items-center justify-center">
+                  {viewingEntry.signature ? (
+                    <img src={viewingEntry.signature} alt="Assinatura" className="max-h-full max-w-full mix-blend-multiply" />
+                  ) : (
+                    <span className="text-[9px] text-slate-300 uppercase font-bold">Sem assinatura</span>
+                  )}
+                </div>
+                <p className="text-[8px] text-slate-400 text-center mt-3 uppercase italic">Documento gerado eletronicamente via Sistema Logística Assefaz</p>
+              </div>
+            </div>
+
+            <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+              <button 
+                onClick={() => window.print()} 
+                className={`flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-black/10 hover:bg-emerald-700 transition-all`}
+              >
+                <Printer className="w-3.5 h-3.5" /> Imprimir Comprovante
+              </button>
+              <button 
+                onClick={() => setViewingEntry(null)} 
+                className="flex-1 py-3 bg-white border border-slate-200 text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-100 transition-all"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="border-b border-slate-200 pb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-[#14213D] uppercase tracking-tighter">Entrada de Insumos</h1>
@@ -175,7 +248,7 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
                     <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Insumo</th>
                     <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Qtd</th>
                     <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Recebido por</th>
-                    <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Assinatura</th>
+                    <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Documento</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -209,11 +282,12 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex justify-center">
-                              {entry.signature ? (
-                                <img src={entry.signature} alt="Assinatura" className="h-8 object-contain opacity-80 hover:opacity-100 transition-opacity" />
-                              ) : (
-                                <span className="text-[8px] text-slate-300 uppercase font-bold italic">Sem assinatura</span>
-                              )}
+                              <button 
+                                onClick={() => setViewingEntry(entry)}
+                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all text-[9px] font-bold uppercase tracking-widest"
+                              >
+                                <Eye className="w-3.5 h-3.5" /> Ver DOC
+                              </button>
                             </div>
                           </td>
                         </tr>
