@@ -25,6 +25,7 @@ export interface StockStaff {
 
 export interface Movement {
   id: string;
+  batchId?: string; // Identificador do lote para agrupar múltiplos itens
   date: string;
   time: string;
   collaboratorId: string;

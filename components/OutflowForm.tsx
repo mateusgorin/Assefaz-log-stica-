@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, ShoppingCart, Hash, CheckCircle2, Warehouse, FileText, Loader2, AlertCircle } from 'lucide-react';
+import { User, ShoppingCart, Hash, CheckCircle2, Warehouse, FileText, Loader2, AlertCircle, Plus, Trash2, ListChecks, ArrowUpCircle } from 'lucide-react';
 import { Collaborator, Product, StockStaff, Movement, Unit, View } from '../types';
 import SignaturePad from './SignaturePad';
 
@@ -8,8 +8,19 @@ interface OutflowFormProps {
   collaborators: Collaborator[];
   products: Product[];
   stockStaff: StockStaff[];
-  onAddMovement: (movement: Omit<Movement, 'id' | 'date' | 'time' | 'unit'>) => void;
+  onAddMovement: (data: { 
+    items: { productId: string, quantity: number }[], 
+    collaboratorId: string, 
+    staffId: string, 
+    signatureWithdrawer: string, 
+    signatureDeliverer: string 
+  }) => void;
   onNavigate: (view: View) => void;
+}
+
+interface BatchItem {
+  productId: string;
+  quantity: number;
 }
 
 const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products, stockStaff, onAddMovement, onNavigate }) => {
@@ -22,25 +33,57 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   
+  const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
+
+  const handleAddItem = () => {
+    const numQuantity = Number(quantity);
+    if (!productId || numQuantity <= 0) {
+      setErrors(prev => ({ ...prev, product: !productId, quantity: numQuantity <= 0 }));
+      return;
+    }
+
+    // Verificar estoque disponível
+    const product = products.find(p => p.id === productId);
+    if (product && numQuantity > product.stock) {
+      alert(`Estoque insuficiente! Saldo atual: ${product.stock} ${product.unit}`);
+      return;
+    }
+    
+    // Verificar se o produto já está no lote
+    const existingIndex = batchItems.findIndex(item => item.productId === productId);
+    if (existingIndex >= 0) {
+      const newItems = [...batchItems];
+      newItems[existingIndex].quantity += numQuantity;
+      setBatchItems(newItems);
+    } else {
+      setBatchItems([...batchItems, { productId, quantity: numQuantity }]);
+    }
+
+    setProductId('');
+    setQuantity(1);
+    setErrors(prev => ({ ...prev, product: false, quantity: false, items: false }));
+  };
+
+  const handleRemoveItem = (index: number) => {
+    setBatchItems(batchItems.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     const newErrors: Record<string, boolean> = {
       collaborator: !collaboratorId,
-      product: !productId,
       staff: !staffId,
       sigWithdrawer: !sigWithdrawer,
       sigDeliverer: !sigDeliverer,
-      quantity: Number(quantity) <= 0
+      items: batchItems.length === 0
     };
 
     setErrors(newErrors);
 
-    const hasErrors = Object.values(newErrors).some(error => error);
-
-    if (hasErrors) {
+    if (Object.values(newErrors).some(error => error)) {
+      if (newErrors.items) alert("Adicione pelo menos um item ao lote antes de confirmar.");
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -49,10 +92,9 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
 
     setTimeout(() => {
       onAddMovement({
+        items: batchItems,
         collaboratorId,
-        productId,
-        stockStaffId: staffId,
-        quantity: Number(quantity),
+        staffId,
         signatureWithdrawer: sigWithdrawer,
         signatureDeliverer: sigDeliverer
       });
@@ -63,7 +105,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
       setTimeout(() => {
         onNavigate(View.HISTORY);
       }, 1500);
-    }, 600);
+    }, 800);
   };
 
   const theme = {
@@ -83,158 +125,182 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
 
   const labelClass = "text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-2 transition-colors";
 
+  const getProduct = (id: string) => products.find(p => p.id === id);
+
   return (
-    <div className="space-y-6 sm:space-y-10">
+    <div className="space-y-6 sm:space-y-10 animate-in fade-in duration-500">
       <header className="border-b border-slate-200 pb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-[#14213D] uppercase tracking-tighter">Requisição de Material</h1>
-        <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-medium">Controle de Fluxo de Insumos</p>
+        <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-medium">Registro de Saída Múltipla — {unit.toUpperCase()}</p>
       </header>
 
-      <form onSubmit={handleSubmit} className="relative bg-white border border-slate-200 p-5 sm:p-10 space-y-8 sm:space-y-10 shadow-sm">
-        {success && (
-          <div className="absolute inset-0 bg-white/95 z-20 flex flex-col items-center justify-center text-center p-6 animate-in fade-in duration-300">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-50 rounded-full flex items-center justify-center mb-6">
-              <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-green-600" />
+      <div className="max-w-5xl mx-auto space-y-12">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="flex items-center gap-2 mb-2">
+              <ArrowUpCircle className="w-4 h-4 text-slate-700" />
+              <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700">Montar Lote de Saída</h2>
             </div>
-            <h2 className="text-lg sm:text-xl font-bold text-slate-800 uppercase tracking-tighter mb-2">Registro Confirmado</h2>
-            <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-widest">A movimentação foi gravada com sucesso.</p>
-          </div>
-        )}
+            
+            <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                <div className="sm:col-span-2 space-y-1">
+                  <label className={`${labelClass} ${errors.product ? 'text-red-600' : 'text-slate-500'}`}>Insumo / Material</label>
+                  <select 
+                    value={productId} 
+                    onChange={(e) => {
+                      setProductId(e.target.value);
+                      setErrors(prev => ({...prev, product: false}));
+                    }} 
+                    className={getInputClass(!!errors.product)}
+                  >
+                    <option value="">Selecione...</option>
+                    {products.sort((a,b) => a.name.localeCompare(b.name)).map(p => (
+                      <option key={p.id} value={p.id}>{p.name.toUpperCase()} ({p.stock} {p.unit.toUpperCase()})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className={`${labelClass} ${errors.quantity ? 'text-red-600' : 'text-slate-500'}`}>Qtd</label>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    value={quantity} 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setQuantity(val === '' ? '' : Number(val));
+                      setErrors(prev => ({...prev, quantity: false}));
+                    }} 
+                    className={getInputClass(!!errors.quantity)} 
+                  />
+                </div>
+                <button 
+                  type="button"
+                  onClick={handleAddItem}
+                  className="bg-slate-800 text-white py-3.5 px-4 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all"
+                >
+                  <Plus className="w-4 h-4" /> Adicionar
+                </button>
+              </div>
 
-        {Object.values(errors).some(e => e) && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 animate-in slide-in-from-top-2">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-              <p className="text-[9px] font-bold text-red-700 uppercase tracking-widest leading-relaxed">
-                Campos obrigatórios não preenchidos.
-              </p>
+              {/* LISTA TEMPORÁRIA DO LOTE */}
+              <div className="border border-slate-100">
+                <div className="bg-slate-50 px-4 py-2 border-b border-slate-100 flex items-center gap-2">
+                  <ListChecks className="w-3 h-3 text-slate-400" />
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Itens no Lote de Saída</span>
+                </div>
+                <div className="min-h-[150px] max-h-[300px] overflow-y-auto custom-scrollbar">
+                  {batchItems.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center p-8 text-center opacity-30">
+                      <ShoppingCart className="w-8 h-8 mb-2" />
+                      <p className="text-[10px] uppercase font-bold tracking-widest">Lote Vazio</p>
+                    </div>
+                  ) : (
+                    <table className="w-full text-left border-collapse">
+                      <tbody className="divide-y divide-slate-50">
+                        {batchItems.map((item, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50/50">
+                            <td className="px-4 py-3 text-[10px] font-bold text-slate-700 uppercase">{getProduct(item.productId)?.name}</td>
+                            <td className="px-4 py-3 text-[10px] font-black text-slate-900 text-right">{item.quantity} {getProduct(item.productId)?.unit}</td>
+                            <td className="px-4 py-3 text-right w-10">
+                              <button onClick={() => handleRemoveItem(idx)} className="text-slate-300 hover:text-red-500 p-1">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-          <div className="space-y-2">
-            <label className={`${labelClass} ${errors.collaborator ? 'text-red-600' : 'text-slate-500'}`}>
-              <User className="w-3 h-3" /> Colaborador Solicitante
-            </label>
-            <select 
-              value={collaboratorId} 
-              onChange={(e) => {
-                setCollaboratorId(e.target.value);
-                setErrors(prev => ({...prev, collaborator: false}));
-              }} 
-              className={getInputClass(!!errors.collaborator)}
-              disabled={loading}
-            >
-              <option value="">Selecione...</option>
-              {collaborators.map(c => (
-                <option key={c.id} value={c.id}>{c.name.toUpperCase()} — {c.department.toUpperCase()}</option>
-              ))}
-            </select>
-          </div>
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-4 h-4 text-slate-700" />
+              <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700">Finalizar Requisição</h2>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="bg-white border border-slate-200 p-6 shadow-sm space-y-6 relative overflow-hidden">
+              {success && (
+                <div className="absolute inset-0 bg-white/95 z-20 flex flex-col items-center justify-center text-center p-6 animate-in fade-in duration-300">
+                  <CheckCircle2 className="w-10 h-10 text-green-600 mb-4" />
+                  <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tighter">Saída Registrada</h2>
+                </div>
+              )}
 
-          <div className="space-y-2">
-            <label className={`${labelClass} ${errors.staff ? 'text-red-600' : 'text-slate-500'}`}>
-              <Warehouse className="w-3 h-3" /> Responsável pela Entrega
-            </label>
-            <select 
-              value={staffId} 
-              onChange={(e) => {
-                setStaffId(e.target.value);
-                setErrors(prev => ({...prev, staff: false}));
-              }} 
-              className={getInputClass(!!errors.staff)}
-              disabled={loading}
-            >
-              <option value="">Selecione...</option>
-              {stockStaff.map(s => (
-                <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>
-              ))}
-            </select>
-          </div>
+              <div className="space-y-1">
+                <label className={`${labelClass} ${errors.collaborator ? 'text-red-600' : 'text-slate-500'}`}>Solicitante</label>
+                <select 
+                  value={collaboratorId} 
+                  onChange={(e) => {
+                    setCollaboratorId(e.target.value);
+                    setErrors(prev => ({...prev, collaborator: false}));
+                  }} 
+                  className={getInputClass(!!errors.collaborator)}
+                  disabled={loading}
+                >
+                  <option value="">Selecione...</option>
+                  {collaborators.map(c => (
+                    <option key={c.id} value={c.id}>{c.name.toUpperCase()}</option>
+                  ))}
+                </select>
+              </div>
 
-          <div className="space-y-2">
-            <label className={`${labelClass} ${errors.product ? 'text-red-600' : 'text-slate-500'}`}>
-              <ShoppingCart className="w-3 h-3" /> Item Solicitado
-            </label>
-            <select 
-              value={productId} 
-              onChange={(e) => {
-                setProductId(e.target.value);
-                setErrors(prev => ({...prev, product: false}));
-              }} 
-              className={getInputClass(!!errors.product)}
-              disabled={loading}
-            >
-              <option value="">Selecione...</option>
-              {products.sort((a,b) => a.name.localeCompare(b.name)).map(p => (
-                <option key={p.id} value={p.id}>{p.name.toUpperCase()} ({p.unit.toUpperCase()})</option>
-              ))}
-            </select>
-          </div>
+              <div className="space-y-1">
+                <label className={`${labelClass} ${errors.staff ? 'text-red-600' : 'text-slate-500'}`}>Responsável pela Entrega</label>
+                <select 
+                  value={staffId} 
+                  onChange={(e) => {
+                    setStaffId(e.target.value);
+                    setErrors(prev => ({...prev, staff: false}));
+                  }} 
+                  className={getInputClass(!!errors.staff)}
+                  disabled={loading}
+                >
+                  <option value="">Selecione...</option>
+                  {stockStaff.map(s => (
+                    <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>
+                  ))}
+                </select>
+              </div>
 
-          <div className="space-y-2">
-            <label className={`${labelClass} ${errors.quantity ? 'text-red-600' : 'text-slate-500'}`}>
-              <Hash className="w-3 h-3" /> Quantidade
-            </label>
-            <input 
-              type="number" 
-              min="1" 
-              value={quantity} 
-              onChange={(e) => {
-                const val = e.target.value;
-                setQuantity(val === '' ? '' : Number(val));
-                setErrors(prev => ({...prev, quantity: false}));
-              }} 
-              className={getInputClass(!!errors.quantity)}
-              disabled={loading} 
-            />
-          </div>
-        </div>
+              <div className="space-y-4 pt-4 border-t border-slate-50">
+                <div className={`p-3 border transition-all ${errors.sigWithdrawer ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
+                  <SignaturePad 
+                    label="Assinatura do Retirante" 
+                    onSave={(val) => {
+                      setSigWithdrawer(val);
+                      if (val) setErrors(prev => ({...prev, sigWithdrawer: false}));
+                    }} 
+                    onClear={() => setSigWithdrawer('')}
+                    colorClass={theme.primaryText}
+                    error={errors.sigWithdrawer}
+                  />
+                </div>
+                <div className={`p-3 border transition-all ${errors.sigDeliverer ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
+                  <SignaturePad 
+                    label="Assinatura do Entregador" 
+                    onSave={(val) => {
+                      setSigDeliverer(val);
+                      if (val) setErrors(prev => ({...prev, sigDeliverer: false}));
+                    }} 
+                    onClear={() => setSigDeliverer('')}
+                    colorClass={theme.primaryText}
+                    error={errors.sigDeliverer}
+                  />
+                </div>
+              </div>
 
-        <div className="pt-6 border-t border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className={`p-4 sm:p-6 border transition-all ${errors.sigWithdrawer ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
-            <SignaturePad 
-              label="Assinatura do Retirante" 
-              onSave={(val) => {
-                setSigWithdrawer(val);
-                if (val) setErrors(prev => ({...prev, sigWithdrawer: false}));
-              }} 
-              onClear={() => setSigWithdrawer('')}
-              colorClass={theme.primaryText}
-              error={errors.sigWithdrawer}
-            />
+              <button type="submit" disabled={loading || success || batchItems.length === 0} className={`w-full py-4 text-white font-bold uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center gap-3 shadow-lg ${loading || batchItems.length === 0 ? 'bg-slate-400' : theme.primaryButton}`}>
+                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Gravando...</> : <><FileText className="w-4 h-4" /> Confirmar Saída</>}
+              </button>
+            </form>
           </div>
-          <div className={`p-4 sm:p-6 border transition-all ${errors.sigDeliverer ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
-            <SignaturePad 
-              label="Assinatura do Entregador" 
-              onSave={(val) => {
-                setSigDeliverer(val);
-                if (val) setErrors(prev => ({...prev, sigDeliverer: false}));
-              }} 
-              onClear={() => setSigDeliverer('')}
-              colorClass={theme.primaryText}
-              error={errors.sigDeliverer}
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end pt-4">
-          <button
-            type="submit"
-            disabled={loading || success}
-            className={`w-full lg:w-auto px-10 sm:px-16 py-4 text-white font-bold uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center gap-3 ${
-              loading ? 'bg-slate-400 cursor-not-allowed' : theme.primaryButton
-            }`}
-          >
-            {loading ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Processando...</>
-            ) : (
-              <><FileText className="w-4 h-4" /> Confirmar Operação</>
-            )}
-          </button>
-        </div>
-      </form>
+        </section>
+      </div>
     </div>
   );
 };

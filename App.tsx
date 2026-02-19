@@ -76,6 +76,7 @@ const App: React.FC = () => {
       if (movsRes.data) {
         setMovements(movsRes.data.map(m => ({
           id: m.id,
+          batchId: m.batch_id,
           date: m.date,
           time: m.time,
           collaboratorId: m.collaborator_id,
@@ -132,33 +133,50 @@ const App: React.FC = () => {
     setConfirmModal(prev => ({ ...prev, isOpen: false }));
   };
 
-  const handleAddMovement = useCallback(async (data: Omit<Movement, 'id' | 'date' | 'time' | 'unit'>) => {
+  const handleAddMovement = useCallback(async (data: { 
+    items: { productId: string, quantity: number }[], 
+    collaboratorId: string, 
+    staffId: string, 
+    signatureWithdrawer: string, 
+    signatureDeliverer: string 
+  }) => {
     if (!activeUnit) return;
     const now = new Date();
-    const { data: inserted, error } = await supabase.from('movements').insert([{
-      date: now.toLocaleDateString('pt-br'),
-      time: now.toLocaleTimeString('pt-br', { hour: '2-digit', minute: '2-digit' }),
-      collaborator_id: data.collaboratorId,
-      product_id: data.productId,
-      quantity: data.quantity,
-      stock_staff_id: data.stockStaffId,
-      signature_withdrawer: data.signatureWithdrawer,
-      signature_deliverer: data.signatureDeliverer,
-      unit: activeUnit
-    }]).select();
+    const batchId = `OUT-${now.getTime()}`;
+    
+    try {
+      const movementsToInsert = data.items.map(item => ({
+        batch_id: batchId,
+        date: now.toLocaleDateString('pt-br'),
+        time: now.toLocaleTimeString('pt-br', { hour: '2-digit', minute: '2-digit' }),
+        collaborator_id: data.collaboratorId,
+        product_id: item.productId,
+        quantity: item.quantity,
+        stock_staff_id: data.staffId,
+        signature_withdrawer: data.signatureWithdrawer,
+        signature_deliverer: data.signatureDeliverer,
+        unit: activeUnit
+      }));
 
-    if (error) {
-      console.error(error);
-      return;
-    }
+      const { error: movError } = await supabase.from('movements').insert(movementsToInsert);
 
-    if (inserted) {
-      const product = products.find(p => p.id === data.productId);
-      if (product) {
-        const newStock = Math.max(0, product.stock - data.quantity);
-        await supabase.from('products').update({ stock: newStock }).eq('id', data.productId);
-        await fetchData();
+      if (movError) {
+        console.error("Erro ao inserir saída:", movError);
+        return;
       }
+
+      // Update stock for each product
+      for (const item of data.items) {
+        const product = products.find(p => p.id === item.productId);
+        if (product) {
+          const newStock = Math.max(0, product.stock - item.quantity);
+          await supabase.from('products').update({ stock: newStock }).eq('id', item.productId);
+        }
+      }
+      
+      await fetchData();
+    } catch (err) {
+      console.error("Erro inesperado na saída de estoque:", err);
     }
   }, [activeUnit, products, fetchData]);
 
@@ -250,9 +268,9 @@ const App: React.FC = () => {
     if (!error) await fetchData();
   }, [fetchData, activeUnit]);
 
-  const handleDeleteMovement = useCallback((id: string) => {
+  const handleDeleteMovement = useCallback((batchId: string) => {
     openConfirm("Excluir Registro?", "O histórico de saída será apagado.", async () => {
-      const { error } = await supabase.from('movements').delete().eq('id', id);
+      const { error } = await supabase.from('movements').delete().or(`batch_id.eq.${batchId},id.eq.${batchId}`);
       if (!error) await fetchData();
       closeConfirm();
     });

@@ -16,23 +16,31 @@ interface HistoryProps {
 
 const History: React.FC<HistoryProps> = ({ unit, movements, entries, products, collaborators, stockStaff, onDelete, onDeleteEntry }) => {
   const [activeTab, setActiveTab] = useState<'outflows' | 'entries'>('outflows');
-  const [viewingMovement, setViewingMovement] = useState<Movement | null>(null);
+  const [viewingMovementBatch, setViewingMovementBatch] = useState<Movement[] | null>(null);
   const [viewingBatch, setViewingBatch] = useState<Entry[] | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const unitMovements = movements
-    .filter(m => {
-      if (m.unit !== unit) return false;
-      const search = searchTerm.toLowerCase();
-      const colName = collaborators.find(c => c.id === m.collaboratorId)?.name.toLowerCase() || '';
-      const prodName = products.find(p => p.id === m.productId)?.name.toLowerCase() || '';
-      return colName.includes(search) || prodName.includes(search) || m.date.includes(search);
-    })
-    .sort((a, b) => {
-      const dateA = new Date(`${a.date.split('/').reverse().join('-')} ${a.time}`);
-      const dateB = new Date(`${b.date.split('/').reverse().join('-')} ${b.time}`);
-      return dateB.getTime() - dateA.getTime();
+  const groupedMovements = useMemo(() => {
+    const groups: Record<string, Movement[]> = {};
+    movements.filter(m => m.unit === unit).forEach(mov => {
+      const key = mov.batchId || mov.id;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(mov);
     });
+
+    return Object.values(groups)
+      .filter(batch => {
+        const search = searchTerm.toLowerCase();
+        const colName = collaborators.find(c => c.id === batch[0].collaboratorId)?.name.toLowerCase() || '';
+        const hasProduct = batch.some(item => products.find(p => p.id === item.productId)?.name.toLowerCase().includes(search));
+        return colName.includes(search) || batch[0].date.includes(search) || hasProduct;
+      })
+      .sort((a, b) => {
+        const dateA = new Date(`${a[0].date.split('/').reverse().join('-')} ${a[0].time}`);
+        const dateB = new Date(`${b[0].date.split('/').reverse().join('-')} ${b[0].time}`);
+        return dateB.getTime() - dateA.getTime();
+      });
+  }, [movements, unit, searchTerm, collaborators, products]);
 
   const groupedEntries = useMemo(() => {
     const groups: Record<string, Entry[]> = {};
@@ -71,9 +79,9 @@ const History: React.FC<HistoryProps> = ({ unit, movements, entries, products, c
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* MODAL DE VISUALIZAÇÃO DE COMPROVANTE DE SAÍDA */}
-      {viewingMovement && (
+      {viewingMovementBatch && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => setViewingMovement(null)} />
+          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => setViewingMovementBatch(null)} />
           <div className={`relative bg-white w-full max-w-2xl shadow-2xl border-t-8 ${theme.border} animate-in zoom-in duration-200 overflow-hidden`}>
             <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-start">
               <div className="flex items-center gap-3">
@@ -82,10 +90,10 @@ const History: React.FC<HistoryProps> = ({ unit, movements, entries, products, c
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-slate-800 uppercase tracking-tighter">Comprovante de Saída</h3>
-                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">ID: {viewingMovement.id}</p>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">ID: {viewingMovementBatch[0].batchId || viewingMovementBatch[0].id}</p>
                 </div>
               </div>
-              <button onClick={() => setViewingMovement(null)} className="p-2 hover:bg-slate-100 text-slate-300 hover:text-slate-600 transition-all rounded-full">
+              <button onClick={() => setViewingMovementBatch(null)} className="p-2 hover:bg-slate-100 text-slate-300 hover:text-slate-600 transition-all rounded-full">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -94,27 +102,45 @@ const History: React.FC<HistoryProps> = ({ unit, movements, entries, products, c
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
                 <div>
                   <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Solicitante</p>
-                  <p className="text-[11px] font-black text-slate-700 uppercase">{getCollaborator(viewingMovement.collaboratorId)?.name || 'N/A'}</p>
-                  <p className="text-[9px] text-slate-400 uppercase font-medium">{getCollaborator(viewingMovement.collaboratorId)?.department || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Item Retirado</p>
-                  <p className="text-[11px] font-black text-slate-700 uppercase">{getProduct(viewingMovement.productId)?.name || 'N/A'}</p>
-                  <p className="text-[9px] text-slate-400 uppercase font-medium">{viewingMovement.quantity} {getProduct(viewingMovement.productId)?.unit || 'UN'}</p>
+                  <p className="text-[11px] font-black text-slate-700 uppercase">{getCollaborator(viewingMovementBatch[0].collaboratorId)?.name || 'N/A'}</p>
+                  <p className="text-[9px] text-slate-400 uppercase font-medium">{getCollaborator(viewingMovementBatch[0].collaboratorId)?.department || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Unidade / Data</p>
-                  <p className="text-[11px] font-black text-slate-700 uppercase">{viewingMovement.unit.toUpperCase()}</p>
-                  <p className="text-[9px] text-slate-400 uppercase font-medium">{viewingMovement.date} às {viewingMovement.time}</p>
+                  <p className="text-[11px] font-black text-slate-700 uppercase">{viewingMovementBatch[0].unit.toUpperCase()}</p>
+                  <p className="text-[9px] text-slate-400 uppercase font-medium">{viewingMovementBatch[0].date} às {viewingMovementBatch[0].time}</p>
                 </div>
+                <div className="text-right">
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Responsável</p>
+                  <p className="text-[11px] font-black text-slate-700 uppercase">{getStaff(viewingMovementBatch[0].stockStaffId)?.name || 'N/A'}</p>
+                </div>
+              </div>
+
+              <div className="border border-slate-100">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-100">
+                      <th className="px-4 py-2 text-[8px] font-bold text-slate-400 uppercase tracking-widest">Item Retirado</th>
+                      <th className="px-4 py-2 text-[8px] font-bold text-slate-400 uppercase tracking-widest text-right">Quantidade</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {viewingMovementBatch.map((item, idx) => (
+                      <tr key={idx}>
+                        <td className="px-4 py-3 text-[10px] font-bold text-slate-700 uppercase">{getProduct(item.productId)?.name || 'N/A'}</td>
+                        <td className="px-4 py-3 text-[10px] font-black text-slate-900 text-right">{item.quantity} {getProduct(item.productId)?.unit || 'UN'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-slate-50 border border-slate-100 p-4">
                   <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">Assinatura do Retirante</p>
                   <div className="bg-white border border-slate-100 h-24 flex items-center justify-center">
-                    {viewingMovement.signatureWithdrawer ? (
-                      <img src={viewingMovement.signatureWithdrawer} alt="Assinatura Retirante" className="max-h-full max-w-full mix-blend-multiply" />
+                    {viewingMovementBatch[0].signatureWithdrawer ? (
+                      <img src={viewingMovementBatch[0].signatureWithdrawer} alt="Assinatura Retirante" className="max-h-full max-w-full mix-blend-multiply" />
                     ) : (
                       <span className="text-[9px] text-slate-300 uppercase font-bold">Sem assinatura</span>
                     )}
@@ -123,13 +149,12 @@ const History: React.FC<HistoryProps> = ({ unit, movements, entries, products, c
                 <div className="bg-slate-50 border border-slate-100 p-4">
                   <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">Assinatura do Entregador</p>
                   <div className="bg-white border border-slate-100 h-24 flex items-center justify-center">
-                    {viewingMovement.signatureDeliverer ? (
-                      <img src={viewingMovement.signatureDeliverer} alt="Assinatura Entregador" className="max-h-full max-w-full mix-blend-multiply" />
+                    {viewingMovementBatch[0].signatureDeliverer ? (
+                      <img src={viewingMovementBatch[0].signatureDeliverer} alt="Assinatura Entregador" className="max-h-full max-w-full mix-blend-multiply" />
                     ) : (
                       <span className="text-[9px] text-slate-300 uppercase font-bold">Sem assinatura</span>
                     )}
                   </div>
-                  <p className="text-[8px] text-slate-400 text-center mt-2 uppercase font-bold tracking-tighter">RESPONSÁVEL: {getStaff(viewingMovement.stockStaffId)?.name.toUpperCase()}</p>
                 </div>
               </div>
             </div>
@@ -138,7 +163,7 @@ const History: React.FC<HistoryProps> = ({ unit, movements, entries, products, c
               <button onClick={() => window.print()} className={`flex-1 flex items-center justify-center gap-2 py-3 ${theme.badge} text-white text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-black/10 hover:opacity-90 transition-all`}>
                 <Printer className="w-3.5 h-3.5" /> Imprimir
               </button>
-              <button onClick={() => setViewingMovement(null)} className="flex-1 py-3 bg-white border border-slate-200 text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-100 transition-all">
+              <button onClick={() => setViewingMovementBatch(null)} className="flex-1 py-3 bg-white border border-slate-200 text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-100 transition-all">
                 Fechar
               </button>
             </div>
@@ -270,46 +295,53 @@ const History: React.FC<HistoryProps> = ({ unit, movements, entries, products, c
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200">
                     <th className="px-6 py-4 text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Data/Hora</th>
-                    <th className="px-6 py-4 text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Colaborador</th>
-                    <th className="px-6 py-4 text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Insumo</th>
-                    <th className="px-6 py-4 text-center text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Vol</th>
+                    <th className="px-6 py-4 text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Solicitante</th>
+                    <th className="px-6 py-4 text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Resumo do Lote</th>
+                    <th className="px-6 py-4 text-center text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Itens</th>
                     <th className="px-6 py-4 text-center text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Documento</th>
                     <th className="px-6 py-4 text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Responsável</th>
                     <th className="px-6 py-4 text-right text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">Remover</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {unitMovements.length > 0 ? (
-                    unitMovements.map((m) => (
-                      <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <p className="text-[11px] font-bold text-slate-700">{m.date}</p>
-                          <p className="text-[9px] text-slate-400 tracking-tighter">{m.time}</p>
-                        </td>
-                        <td className="px-6 py-4 text-[10px] font-bold text-slate-600 uppercase">
-                          {getCollaborator(m.collaboratorId)?.name || m.collaboratorId}
-                        </td>
-                        <td className="px-6 py-4 text-[10px] text-slate-700 font-medium uppercase">
-                          {getProduct(m.productId)?.name || m.productId}
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="text-[11px] font-bold text-slate-900">{m.quantity}</span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <button onClick={() => setViewingMovement(m)} className={`inline-flex items-center gap-2 px-3 py-1.5 ${theme.light} ${theme.text} hover:bg-slate-200 transition-all text-[9px] font-bold uppercase tracking-widest`}>
-                            <Eye className="w-3.5 h-3.5" /> Ver DOC
-                          </button>
-                        </td>
-                        <td className="px-6 py-4 text-[10px] text-slate-500 uppercase">
-                          {getStaff(m.stockStaffId)?.name || m.stockStaffId}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <button onClick={() => onDelete(m.id)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all rounded-full">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                  {groupedMovements.length > 0 ? (
+                    groupedMovements.map((batch, idx) => {
+                      const collaborator = getCollaborator(batch[0].collaboratorId);
+                      const firstProduct = getProduct(batch[0].productId);
+                      const batchId = batch[0].batchId || batch[0].id;
+                      return (
+                        <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <p className="text-[11px] font-bold text-slate-700">{batch[0].date}</p>
+                            <p className="text-[9px] text-slate-400 tracking-tighter">{batch[0].time}</p>
+                          </td>
+                          <td className="px-6 py-4 text-[10px] font-bold text-slate-600 uppercase">
+                            {collaborator?.name || 'Solicitante'}
+                          </td>
+                          <td className="px-6 py-4 text-[10px] text-slate-700 font-medium uppercase">
+                            {firstProduct?.name || 'Item'} {batch.length > 1 ? `e mais ${batch.length - 1}...` : ''}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <span className="inline-flex items-center px-2 py-1 bg-slate-100 text-slate-700 text-[10px] font-black rounded">
+                              {batch.length}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <button onClick={() => setViewingMovementBatch(batch)} className={`inline-flex items-center gap-2 px-3 py-1.5 ${theme.light} ${theme.text} hover:bg-slate-200 transition-all text-[9px] font-bold uppercase tracking-widest`}>
+                              <Eye className="w-3.5 h-3.5" /> Ver DOC
+                            </button>
+                          </td>
+                          <td className="px-6 py-4 text-[10px] text-slate-500 uppercase">
+                            {getStaff(batch[0].stockStaffId)?.name || 'Responsável'}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button onClick={() => onDelete(batchId)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all rounded-full">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr>
                       <td colSpan={7} className="px-6 py-20 text-center text-[10px] uppercase font-bold tracking-[0.3em] text-slate-300">Nenhum registro localizado</td>
@@ -322,43 +354,50 @@ const History: React.FC<HistoryProps> = ({ unit, movements, entries, products, c
 
           {/* Mobile Card View - Saídas */}
           <div className="md:hidden space-y-4">
-            {unitMovements.map((m) => (
-              <div key={m.id} className="bg-white border border-slate-200 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-2 right-2">
-                   <button onClick={() => onDelete(m.id)} className="p-3 text-slate-300 bg-white border border-slate-100 shadow-sm rounded-full active:bg-red-50 active:text-red-500">
+            {groupedMovements.map((batch, idx) => {
+              const collaborator = getCollaborator(batch[0].collaboratorId);
+              const firstProduct = getProduct(batch[0].productId);
+              const batchId = batch[0].batchId || batch[0].id;
+              return (
+                <div key={idx} className="bg-white border border-slate-200 shadow-sm relative overflow-hidden group">
+                  <div className="absolute top-2 right-2">
+                    <button onClick={() => onDelete(batchId)} className="p-3 text-slate-300 bg-white border border-slate-100 shadow-sm rounded-full active:bg-red-50 active:text-red-500">
                       <Trash2 className="w-4 h-4" />
-                   </button>
-                </div>
-                <div className="p-5 pb-0">
-                  <div className="flex items-center gap-3 border-b border-slate-50 pb-3 mb-4">
-                    <div className={`w-10 h-10 ${theme.badge} flex items-center justify-center text-white`}>
-                      <Package className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="p-5 pb-0">
+                    <div className="flex items-center gap-3 border-b border-slate-50 pb-3 mb-4">
+                      <div className={`w-10 h-10 ${theme.badge} flex items-center justify-center text-white`}>
+                        <Package className="w-5 h-5" />
+                      </div>
+                      <div className="pr-12">
+                        <p className="text-[10px] font-bold text-slate-800 uppercase leading-none mb-1 truncate">
+                          {firstProduct?.name || 'Item'} {batch.length > 1 ? `+${batch.length - 1}` : ''}
+                        </p>
+                        <p className="text-[9px] text-slate-400 uppercase tracking-tighter font-bold">Comprovante com {batch.length} itens</p>
+                      </div>
                     </div>
-                    <div className="pr-12">
-                      <p className="text-[10px] font-bold text-slate-800 uppercase leading-none mb-1 truncate">{getProduct(m.productId)?.name || m.productId}</p>
-                      <p className="text-[9px] text-slate-400 uppercase tracking-tighter font-bold">{m.quantity} {getProduct(m.productId)?.unit || 'UN'}</p>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 text-[8px] font-bold text-slate-400 uppercase tracking-wider">
+                          <User className="w-2.5 h-2.5" /> Solicitante
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-600 uppercase truncate">{collaborator?.name || 'Solicitante'}</p>
+                      </div>
+                      <div className="space-y-1 text-right">
+                        <div className="flex items-center gap-1.5 text-[8px] font-bold text-slate-400 uppercase tracking-wider justify-end">
+                          <Clock className="w-2.5 h-2.5" /> Horário
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-600 uppercase">{batch[0].date} - {batch[0].time}</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-[8px] font-bold text-slate-400 uppercase tracking-wider">
-                        <User className="w-2.5 h-2.5" /> Solicitante
-                      </div>
-                      <p className="text-[10px] font-bold text-slate-600 uppercase truncate">{getCollaborator(m.collaboratorId)?.name || m.collaboratorId}</p>
-                    </div>
-                    <div className="space-y-1 text-right">
-                      <div className="flex items-center gap-1.5 text-[8px] font-bold text-slate-400 uppercase tracking-wider justify-end">
-                        <Clock className="w-2.5 h-2.5" /> Horário
-                      </div>
-                      <p className="text-[10px] font-bold text-slate-600 uppercase">{m.date} - {m.time}</p>
-                    </div>
-                  </div>
+                  <button onClick={() => setViewingMovementBatch(batch)} className={`w-full py-4 ${theme.light} ${theme.text} flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest border-t border-slate-100 active:bg-slate-200 transition-all`}>
+                    <Eye className="w-4 h-4" /> Visualizar Comprovante
+                  </button>
                 </div>
-                <button onClick={() => setViewingMovement(m)} className={`w-full py-4 ${theme.light} ${theme.text} flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest border-t border-slate-100 active:bg-slate-200 transition-all`}>
-                  <Eye className="w-4 h-4" /> Visualizar Comprovante
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </>
       ) : (
