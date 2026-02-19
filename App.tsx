@@ -1,15 +1,15 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { MENU_ITEMS } from './constants.tsx';
-import { Unit, View, Movement, Product, Collaborator, StockStaff } from './types.ts';
-import { supabase, isConfigured } from './lib/supabase.ts';
-import Dashboard from './components/Dashboard.tsx';
-import OutflowForm from './components/OutflowForm.tsx';
-import EntryForm from './components/EntryForm.tsx';
-import History from './components/History.tsx';
-import Management from './components/Management.tsx';
-import Reports from './components/Reports.tsx';
-import Inventory from './components/Inventory.tsx';
+import { MENU_ITEMS } from './constants';
+import { Unit, View, Movement, Product, Collaborator, StockStaff, Entry } from './types';
+import { supabase, isConfigured } from './lib/supabase';
+import Dashboard from './components/Dashboard';
+import OutflowForm from './components/OutflowForm';
+import EntryForm from './components/EntryForm';
+import History from './components/History';
+import Management from './components/Management';
+import Reports from './components/Reports';
+import Inventory from './components/Inventory';
 import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building, Lock, ArrowRight } from 'lucide-react';
 
 // SENHA DE ACESSO DO SISTEMA ATUALIZADA
@@ -37,6 +37,7 @@ const App: React.FC = () => {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [stockStaff, setStockStaff] = useState<StockStaff[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
+  const [entries, setEntries] = useState<Entry[]>([]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,11 +55,12 @@ const App: React.FC = () => {
     if (!configured || !activeUnit) return;
     setLoading(true);
     try {
-      const [prods, cols, staff, movs] = await Promise.all([
+      const [prods, cols, staff, movs, ents] = await Promise.all([
         supabase.from('products').select('*').eq('location', activeUnit).order('name'),
         supabase.from('collaborators').select('*').eq('location', activeUnit).order('name'),
         supabase.from('stock_staff').select('*').eq('location', activeUnit).order('name'),
-        supabase.from('movements').select('*').eq('unit', activeUnit).order('created_at', { ascending: false })
+        supabase.from('movements').select('*').eq('unit', activeUnit).order('created_at', { ascending: false }),
+        supabase.from('entries').select('*').eq('unit', activeUnit).order('created_at', { ascending: false })
       ]);
 
       setProducts(prods.data || []);
@@ -66,7 +68,7 @@ const App: React.FC = () => {
       setStockStaff(staff.data || []);
       
       if (movs.data) {
-        const formattedMovs: Movement[] = movs.data.map(m => ({
+        setMovements(movs.data.map(m => ({
           id: m.id,
           date: m.date,
           time: m.time,
@@ -77,10 +79,24 @@ const App: React.FC = () => {
           signatureWithdrawer: m.signature_withdrawer,
           signatureDeliverer: m.signature_deliverer,
           unit: m.unit as Unit
-        }));
-        setMovements(formattedMovs);
+        })));
       } else {
         setMovements([]);
+      }
+
+      if (ents.data) {
+        setEntries(ents.data.map(e => ({
+          id: e.id,
+          date: e.date,
+          time: e.time,
+          productId: e.product_id,
+          quantity: e.quantity,
+          stockStaffId: e.stock_staff_id,
+          signature: e.signature,
+          unit: e.unit as Unit
+        })));
+      } else {
+        setEntries([]);
       }
     } catch (error) {
       console.error("Erro ao sincronizar:", error);
@@ -135,7 +151,7 @@ const App: React.FC = () => {
 
   const handleDeleteCollaborator = useCallback((id: string) => {
     openConfirm(
-      "Excluir Colaboradora?", 
+      "Excluir Colaborador?", 
       "Esta ação é permanente e removerá todos os registros associados.", 
       async () => {
         const { error } = await supabase.from('collaborators').delete().eq('id', id);
@@ -157,14 +173,34 @@ const App: React.FC = () => {
     );
   }, [fetchData]);
 
-  const handleAddStock = useCallback(async (productId: string, quantity: number) => {
-    const product = products.find(p => p.id === productId);
-    if (product) {
-      const newStock = product.stock + quantity;
-      const { error } = await supabase.from('products').update({ stock: newStock }).eq('id', productId);
-      if (!error) await fetchData();
+  const handleAddStock = useCallback(async (data: { productId: string, quantity: number, staffId: string, signature: string }) => {
+    if (!activeUnit) return;
+    const now = new Date();
+    
+    // 1. Log the entry
+    const { error: entryError } = await supabase.from('entries').insert([{
+      date: now.toLocaleDateString('pt-br'),
+      time: now.toLocaleTimeString('pt-br', { hour: '2-digit', minute: '2-digit' }),
+      product_id: data.productId,
+      quantity: data.quantity,
+      stock_staff_id: data.staffId,
+      signature: data.signature,
+      unit: activeUnit
+    }]);
+
+    if (entryError) {
+      console.error(entryError);
+      return;
     }
-  }, [products, fetchData]);
+
+    // 2. Update stock
+    const product = products.find(p => p.id === data.productId);
+    if (product) {
+      const newStock = product.stock + data.quantity;
+      await supabase.from('products').update({ stock: newStock }).eq('id', data.productId);
+      await fetchData();
+    }
+  }, [products, activeUnit, fetchData]);
 
   const handleAddProduct = useCallback(async (p: Omit<Product, 'id' | 'location'>) => {
     if (!activeUnit) return;
@@ -369,7 +405,7 @@ const App: React.FC = () => {
           <div className="max-w-6xl mx-auto">
             {currentView === View.DASHBOARD && <Dashboard unit={activeUnit} movements={movements} products={products} collaborators={collaborators} />}
             {currentView === View.OUTFLOW && <OutflowForm unit={activeUnit} products={products} collaborators={collaborators} stockStaff={stockStaff} onAddMovement={handleAddMovement} onNavigate={(view) => setCurrentView(view)} />}
-            {currentView === View.ENTRY && <EntryForm unit={activeUnit} products={products} stockStaff={stockStaff} onAddStock={handleAddStock} onNavigate={(view) => setCurrentView(view)} />}
+            {currentView === View.ENTRY && <EntryForm unit={activeUnit} products={products} stockStaff={stockStaff} entries={entries} onAddStock={handleAddStock} onNavigate={(view) => setCurrentView(view)} />}
             {currentView === View.STOCK && <Inventory unit={activeUnit} products={products} />}
             {currentView === View.HISTORY && <History unit={activeUnit} movements={movements} products={products} collaborators={collaborators} stockStaff={stockStaff} onDelete={handleDeleteMovement} />}
             {currentView === View.MANAGEMENT && <Management unit={activeUnit} products={products} collaborators={collaborators} stockStaff={stockStaff} onAddProduct={handleAddProduct} onAddCollaborator={handleAddCollaborator} onAddStaff={handleAddStaff} onDeleteProduct={handleDeleteProduct} onDeleteCollaborator={handleDeleteCollaborator} onDeleteStaff={handleDeleteStaff} />}

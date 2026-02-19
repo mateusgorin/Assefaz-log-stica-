@@ -1,3 +1,4 @@
+
 export type Unit = 'sede' | '506';
 
 export interface Product {
@@ -32,6 +33,17 @@ export interface Movement {
   stockStaffId: string;
   signatureWithdrawer: string;
   signatureDeliverer: string;
+  unit: Unit;
+}
+
+export interface Entry {
+  id: string;
+  date: string;
+  time: string;
+  productId: string;
+  quantity: number;
+  stockStaffId: string;
+  signature: string;
   unit: Unit;
 }
 
