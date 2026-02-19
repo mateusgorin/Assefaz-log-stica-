@@ -42,13 +42,6 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
       setErrors(prev => ({ ...prev, product: !productId, quantity: numQuantity <= 0 }));
       return;
     }
-
-    // Verificar estoque disponível
-    const product = products.find(p => p.id === productId);
-    if (product && numQuantity > product.stock) {
-      alert(`Estoque insuficiente! Saldo atual: ${product.stock} ${product.unit}`);
-      return;
-    }
     
     // Verificar se o produto já está no lote
     const existingIndex = batchItems.findIndex(item => item.productId === productId);
