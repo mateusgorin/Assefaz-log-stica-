@@ -162,6 +162,7 @@ const App: React.FC = () => {
 
       if (movError) {
         console.error("Erro ao inserir saída:", movError);
+        alert(`Erro ao salvar saída: ${movError.message}\n\nVerifique se a coluna 'batch_id' existe na tabela 'movements' do seu Supabase.`);
         return;
       }
 
