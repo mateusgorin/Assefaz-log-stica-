@@ -36,21 +36,6 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
   const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
 
-  // Custom Selector State
-  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
-  const [productSearch, setProductSearch] = useState('');
-  const selectorRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (selectorRef.current && !selectorRef.current.contains(event.target as Node)) {
-        setIsSelectorOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const handleAddItem = () => {
     const numQuantity = Number(quantity);
     if (!productId || numQuantity <= 0) {
@@ -135,10 +120,6 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
 
   const getProduct = (id: string) => products.find(p => p.id === id);
 
-  const filteredProducts = products
-    .filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()))
-    .sort((a,b) => a.name.localeCompare(b.name));
-
   return (
     <div className="space-y-6 sm:space-y-10 animate-in fade-in duration-500">
       <header className="border-b border-slate-200 pb-6">
@@ -156,63 +137,21 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
             
             <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
-                {/* Custom Product Selector */}
-                <div className="sm:col-span-2 space-y-1 relative" ref={selectorRef}>
+                <div className="sm:col-span-2 space-y-1">
                   <label className={`${labelClass} ${errors.product ? 'text-red-600' : 'text-slate-500'}`}>Insumo / Material</label>
-                  <button 
-                    type="button"
-                    onClick={() => setIsSelectorOpen(!isSelectorOpen)}
-                    className={`${getInputClass(!!errors.product)} flex justify-between items-center text-left`}
+                  <select 
+                    value={productId} 
+                    onChange={(e) => {
+                      setProductId(e.target.value);
+                      setErrors(prev => ({...prev, product: false}));
+                    }} 
+                    className={getInputClass(!!errors.product)}
                   >
-                    <span className="truncate">
-                      {productId ? getProduct(productId)?.name.toUpperCase() : "SELECIONE O MATERIAL..."}
-                    </span>
-                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isSelectorOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  
-                  {isSelectorOpen && (
-                    <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 shadow-2xl animate-in fade-in zoom-in duration-150">
-                      <div className="p-3 border-b border-slate-100 flex items-center gap-2 bg-slate-50">
-                        <Search className="w-3.5 h-3.5 text-slate-400" />
-                        <input 
-                          type="text"
-                          placeholder="PESQUISAR..."
-                          value={productSearch}
-                          onChange={(e) => setProductSearch(e.target.value)}
-                          className="bg-transparent w-full text-[10px] font-bold uppercase outline-none"
-                          autoFocus
-                        />
-                        {productSearch && (
-                          <button onClick={() => setProductSearch('')}>
-                            <X className="w-3.5 h-3.5 text-slate-400" />
-                          </button>
-                        )}
-                      </div>
-                      <div className="max-h-64 overflow-y-auto custom-scrollbar">
-                        {filteredProducts.map(p => (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => {
-                              setProductId(p.id);
-                              setIsSelectorOpen(false);
-                              setProductSearch('');
-                              setErrors(prev => ({...prev, product: false}));
-                            }}
-                            className="w-full text-left px-4 py-3 text-[10px] font-bold uppercase hover:bg-slate-50 flex justify-between items-center border-b border-slate-50 last:border-0"
-                          >
-                            <span className="truncate pr-4 text-slate-700">{p.name}</span>
-                            <span className={`font-black shrink-0 ${p.stock <= 5 ? 'text-red-500' : 'text-green-600'}`}>
-                              {p.stock}
-                            </span>
-                          </button>
-                        ))}
-                        {filteredProducts.length === 0 && (
-                          <div className="p-8 text-center text-[10px] font-bold text-slate-300 uppercase">Nenhum item encontrado</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                    <option value="">Selecione...</option>
+                    {products.sort((a,b) => a.name.localeCompare(b.name)).map(p => (
+                      <option key={p.id} value={p.id}>{p.name.toUpperCase()} ({p.stock})</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="space-y-1">
