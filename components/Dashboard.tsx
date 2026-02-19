@@ -144,6 +144,44 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, collab
       .slice(0, 5);
   }, [movements, collaborators]);
 
+  const collaboratorInsights = useMemo(() => {
+    if (filterMonth === 'all') return [];
+
+    const prevMonth = filterMonth === 1 ? 12 : filterMonth - 1;
+    const prevYear = filterMonth === 1 ? filterYear - 1 : filterYear;
+
+    const currentMap: Record<string, number> = {};
+    filteredData.forEach(m => {
+      currentMap[m.collaboratorId] = (currentMap[m.collaboratorId] || 0) + m.quantity;
+    });
+
+    const prevData = movements.filter(m => {
+      const [,, y] = m.date.split('/').map(Number);
+      const mon = parseInt(m.date.split('/')[1]);
+      return mon === prevMonth && y === prevYear;
+    });
+
+    const prevMap: Record<string, number> = {};
+    prevData.forEach(m => {
+      prevMap[m.collaboratorId] = (prevMap[m.collaboratorId] || 0) + m.quantity;
+    });
+
+    return Object.entries(currentMap)
+      .map(([id, currentQty]) => {
+        const prevQty = prevMap[id] || 0;
+        const diff = prevQty === 0 ? 0 : ((currentQty - prevQty) / prevQty) * 100;
+        return {
+          name: collaborators.find(c => c.id === id)?.name.toUpperCase() || 'OUTRO',
+          current: currentQty,
+          prev: prevQty,
+          percent: diff.toFixed(1),
+          trend: diff > 0 ? 'up' : diff < 0 ? 'down' : 'stable'
+        };
+      })
+      .sort((a, b) => b.current - a.current)
+      .slice(0, 5);
+  }, [filteredData, movements, filterMonth, filterYear, collaborators]);
+
   // Componentes Internos
   const KPICard = ({ title, value, sub, icon: Icon, trend }: any) => (
     <div className={`bg-white border ${theme.border} p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group`}>
@@ -328,31 +366,62 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, collab
       </div>
 
       {/* RANKING ACUMULADO GERAL */}
-      <section className="bg-white border border-slate-200 p-6 sm:p-10 shadow-sm">
-        <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-6">
-          <Award className={`w-5 h-5 ${theme.text}`} />
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-800">Ranking Geral Acumulado (Histórico Total)</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Top Colaboradores (Total Histórico)</p>
-            <div className="space-y-4">
-              {accumulatedRanking.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between group">
-                  <div className="flex items-center gap-4">
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${idx === 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>{idx + 1}</span>
-                    <span className="text-[10px] font-bold text-slate-700 uppercase group-hover:text-slate-900 transition-colors">{item.name}</span>
-                  </div>
-                  <span className="text-[10px] font-black text-slate-400">{item.total} ITENS</span>
-                </div>
-              ))}
-            </div>
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="lg:col-span-2 bg-white border border-slate-200 p-6 sm:p-10 shadow-sm">
+          <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-6">
+            <TrendingUp className={`w-5 h-5 ${theme.text}`} />
+            <h2 className="text-sm font-black uppercase tracking-widest text-slate-800">Insights de Consumo por Colaborador (vs Mês Anterior)</h2>
           </div>
-          <div className="bg-slate-50/50 p-6 border-l-4 border-slate-200">
-             <h4 className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-4">Insights Gerenciais</h4>
-             <p className="text-[10px] text-slate-500 leading-relaxed uppercase font-medium">
-               O colaborador <strong className={theme.text}>{accumulatedRanking[0]?.name}</strong> lidera o consumo histórico com um total de <strong className={theme.text}>{accumulatedRanking[0]?.total}</strong> requisições atendidas. Este ranking considera todos os registros salvos no banco de dados até o momento.
-             </p>
+          
+          {filterMonth === 'all' ? (
+            <div className="py-10 text-center text-[10px] uppercase font-bold text-slate-300">Selecione um mês específico para ver os insights comparativos</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {collaboratorInsights.length > 0 ? (
+                collaboratorInsights.map((item, idx) => (
+                  <div key={idx} className="bg-slate-50 p-4 border border-slate-100 flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-3">
+                      <span className="text-[10px] font-black text-slate-700 uppercase truncate pr-2">{item.name}</span>
+                      <div className={`flex items-center text-[9px] font-bold px-1.5 py-0.5 rounded ${item.trend === 'up' ? 'bg-red-100 text-red-600' : item.trend === 'down' ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-500'}`}>
+                        {item.trend === 'up' ? <ArrowUpRight className="w-2.5 h-2.5 mr-0.5" /> : item.trend === 'down' ? <ArrowDownRight className="w-2.5 h-2.5 mr-0.5" /> : null}
+                        {item.percent}%
+                      </div>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-xl font-black text-slate-800 tracking-tighter">{item.current}</span>
+                      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Itens este mês</span>
+                    </div>
+                    <p className="text-[8px] text-slate-400 uppercase font-medium mt-1">Mês anterior: {item.prev} itens</p>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-2 py-10 text-center text-[10px] uppercase font-bold text-slate-300">Sem dados suficientes para comparação</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white border border-slate-200 p-6 sm:p-10 shadow-sm">
+          <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-6">
+            <Award className={`w-5 h-5 ${theme.text}`} />
+            <h2 className="text-sm font-black uppercase tracking-widest text-slate-800">Ranking Geral</h2>
+          </div>
+          <div className="space-y-4">
+            {accumulatedRanking.map((item, idx) => (
+              <div key={idx} className="flex items-center justify-between group">
+                <div className="flex items-center gap-4">
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${idx === 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>{idx + 1}</span>
+                  <span className="text-[10px] font-bold text-slate-700 uppercase group-hover:text-slate-900 transition-colors">{item.name.split(' ')[0]}</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400">{item.total} ITENS</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-8 pt-6 border-t border-slate-50">
+            <h4 className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">Destaque Histórico</h4>
+            <p className="text-[9px] text-slate-500 leading-relaxed uppercase font-medium">
+              O colaborador <strong className={theme.text}>{accumulatedRanking[0]?.name}</strong> lidera o consumo histórico com <strong className={theme.text}>{accumulatedRanking[0]?.total}</strong> itens.
+            </p>
           </div>
         </div>
       </section>

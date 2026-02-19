@@ -113,6 +113,12 @@ const App: React.FC = () => {
   }, [configured, activeUnit]);
 
   useEffect(() => {
+    if (activeUnit) {
+      setCurrentView(View.DASHBOARD);
+    }
+  }, [activeUnit]);
+
+  useEffect(() => {
     if (configured && activeUnit && isAuthorized) {
       fetchData();
     }
@@ -221,6 +227,11 @@ const App: React.FC = () => {
     }
   }, [products, activeUnit, fetchData]);
 
+  const handleUpdateStock = useCallback(async (productId: string, newStock: number) => {
+    const { error } = await supabase.from('products').update({ stock: newStock }).eq('id', productId);
+    if (!error) await fetchData();
+  }, [fetchData]);
+
   const handleAddProduct = useCallback(async (p: Omit<Product, 'id' | 'location'>) => {
     if (!activeUnit) return;
     const { error } = await supabase.from('products').insert([{ ...p, location: activeUnit }]);
@@ -249,7 +260,8 @@ const App: React.FC = () => {
 
   const handleDeleteEntry = useCallback((batchId: string) => {
     openConfirm("Excluir Ficha de Entrada?", "Todos os itens deste lote serão removidos do histórico.", async () => {
-      const { error } = await supabase.from('entries').delete().eq('batch_id', batchId);
+      // Deleta tanto pelo batch_id quanto pelo id (caso seja registro antigo sem batch_id)
+      const { error } = await supabase.from('entries').delete().or(`batch_id.eq.${batchId},id.eq.${batchId}`);
       if (!error) await fetchData();
       closeConfirm();
     });
@@ -433,7 +445,7 @@ const App: React.FC = () => {
             {currentView === View.DASHBOARD && <Dashboard unit={activeUnit} movements={movements} products={products} collaborators={collaborators} />}
             {currentView === View.OUTFLOW && <OutflowForm unit={activeUnit} products={products} collaborators={collaborators} stockStaff={stockStaff} onAddMovement={handleAddMovement} onNavigate={(view) => setCurrentView(view)} />}
             {currentView === View.ENTRY && <EntryForm unit={activeUnit} products={products} stockStaff={stockStaff} entries={entries} onAddStock={handleAddStock} onNavigate={(view) => setCurrentView(view)} />}
-            {currentView === View.STOCK && <Inventory unit={activeUnit} products={products} />}
+            {currentView === View.STOCK && <Inventory unit={activeUnit} products={products} onUpdateStock={handleUpdateStock} />}
             {currentView === View.HISTORY && <History unit={activeUnit} movements={movements} entries={entries} products={products} collaborators={collaborators} stockStaff={stockStaff} onDelete={handleDeleteMovement} onDeleteEntry={handleDeleteEntry} />}
             {currentView === View.MANAGEMENT && <Management unit={activeUnit} products={products} collaborators={collaborators} stockStaff={stockStaff} onAddProduct={handleAddProduct} onAddCollaborator={handleAddCollaborator} onAddStaff={handleAddStaff} onDeleteProduct={handleDeleteProduct} onDeleteCollaborator={handleDeleteCollaborator} onDeleteStaff={handleDeleteStaff} />}
             {currentView === View.REPORTS && <Reports unit={activeUnit} movements={movements} products={products} collaborators={collaborators} stockStaff={stockStaff} />}

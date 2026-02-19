@@ -16,7 +16,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
   const [collaboratorId, setCollaboratorId] = useState('');
   const [productId, setProductId] = useState('');
   const [staffId, setStaffId] = useState('');
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState<number | string>(1);
   const [sigWithdrawer, setSigWithdrawer] = useState('');
   const [sigDeliverer, setSigDeliverer] = useState('');
   const [success, setSuccess] = useState(false);
@@ -33,7 +33,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
       staff: !staffId,
       sigWithdrawer: !sigWithdrawer,
       sigDeliverer: !sigDeliverer,
-      quantity: quantity <= 0
+      quantity: Number(quantity) <= 0
     };
 
     setErrors(newErrors);
@@ -52,7 +52,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
         collaboratorId,
         productId,
         stockStaffId: staffId,
-        quantity,
+        quantity: Number(quantity),
         signatureWithdrawer: sigWithdrawer,
         signatureDeliverer: sigDeliverer
       });
@@ -182,7 +182,8 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
               min="1" 
               value={quantity} 
               onChange={(e) => {
-                setQuantity(Number(e.target.value));
+                const val = e.target.value;
+                setQuantity(val === '' ? '' : Number(val));
                 setErrors(prev => ({...prev, quantity: false}));
               }} 
               className={getInputClass(!!errors.quantity)}

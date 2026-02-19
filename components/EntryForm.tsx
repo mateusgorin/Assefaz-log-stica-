@@ -21,34 +21,19 @@ interface BatchItem {
 const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entries, onAddStock, onNavigate }) => {
   const [productId, setProductId] = useState('');
   const [staffId, setStaffId] = useState('');
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState<number | string>(1);
   const [signature, setSignature] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
-  const [viewingBatch, setViewingBatch] = useState<Entry[] | null>(null);
   
   // Novo estado para gerenciar múltiplos itens no lote atual
   const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
 
-  // Agrupar entradas por lote para o histórico
-  const groupedEntries = useMemo(() => {
-    const groups: Record<string, Entry[]> = {};
-    entries.forEach(entry => {
-      const key = entry.batchId || entry.id;
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(entry);
-    });
-    return Object.values(groups).sort((a, b) => {
-      const dateA = new Date(`${a[0].date.split('/').reverse().join('-')} ${a[0].time}`);
-      const dateB = new Date(`${b[0].date.split('/').reverse().join('-')} ${b[0].time}`);
-      return dateB.getTime() - dateA.getTime();
-    });
-  }, [entries]);
-
   const handleAddItem = () => {
-    if (!productId || quantity <= 0) {
-      setErrors(prev => ({ ...prev, product: !productId, quantity: quantity <= 0 }));
+    const numQuantity = Number(quantity);
+    if (!productId || numQuantity <= 0) {
+      setErrors(prev => ({ ...prev, product: !productId, quantity: numQuantity <= 0 }));
       return;
     }
     
@@ -56,10 +41,10 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
     const existingIndex = batchItems.findIndex(item => item.productId === productId);
     if (existingIndex >= 0) {
       const newItems = [...batchItems];
-      newItems[existingIndex].quantity += quantity;
+      newItems[existingIndex].quantity += numQuantity;
       setBatchItems(newItems);
     } else {
-      setBatchItems([...batchItems, { productId, quantity }]);
+      setBatchItems([...batchItems, { productId, quantity: numQuantity }]);
     }
 
     setProductId('');
@@ -125,89 +110,6 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
 
   return (
     <div className="space-y-10 pb-20 animate-in fade-in duration-500">
-      {/* MODAL DE VISUALIZAÇÃO DE COMPROVANTE DE ENTRADA (LOTE) */}
-      {viewingBatch && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => setViewingBatch(null)} />
-          <div className={`relative bg-white w-full max-w-2xl shadow-2xl border-t-8 border-emerald-600 animate-in zoom-in duration-200 overflow-hidden`}>
-            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-start">
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center`}>
-                  <FileText className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-slate-800 uppercase tracking-tighter">Ficha de Recebimento</h3>
-                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Lote: {viewingBatch[0].batchId || viewingBatch[0].id}</p>
-                </div>
-              </div>
-              <button onClick={() => setViewingBatch(null)} className="p-2 hover:bg-slate-100 text-slate-300 hover:text-slate-600 transition-all rounded-full">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 sm:p-8 space-y-8">
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Operador Responsável</p>
-                  <p className="text-[11px] font-black text-slate-700 uppercase">{getStaff(viewingBatch[0].stockStaffId)?.name || 'N/A'}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Unidade / Data / Hora</p>
-                  <p className="text-[11px] font-black text-slate-700 uppercase">{viewingBatch[0].unit.toUpperCase()}</p>
-                  <p className="text-[9px] text-slate-400 uppercase font-medium">{viewingBatch[0].date} às {viewingBatch[0].time}</p>
-                </div>
-              </div>
-
-              <div className="border border-slate-100">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-100">
-                      <th className="px-4 py-2 text-[8px] font-bold text-slate-400 uppercase tracking-widest">Item Recebido</th>
-                      <th className="px-4 py-2 text-[8px] font-bold text-slate-400 uppercase tracking-widest text-right">Quantidade</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {viewingBatch.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className="px-4 py-3 text-[10px] font-bold text-slate-700 uppercase">{getProduct(item.productId)?.name || 'N/A'}</td>
-                        <td className="px-4 py-3 text-[10px] font-black text-emerald-600 text-right">+{item.quantity} {getProduct(item.productId)?.unit || 'UN'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="bg-slate-50 border border-slate-100 p-6">
-                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Assinatura do Operador</p>
-                <div className="bg-white border border-slate-100 h-32 flex items-center justify-center">
-                  {viewingBatch[0].signature ? (
-                    <img src={viewingBatch[0].signature} alt="Assinatura" className="max-h-full max-w-full mix-blend-multiply" />
-                  ) : (
-                    <span className="text-[9px] text-slate-300 uppercase font-bold">Sem assinatura</span>
-                  )}
-                </div>
-                <p className="text-[8px] text-slate-400 text-center mt-3 uppercase italic">Documento gerado eletronicamente via Sistema Logística Assefaz</p>
-              </div>
-            </div>
-
-            <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
-              <button 
-                onClick={() => window.print()} 
-                className={`flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-black/10 hover:bg-emerald-700 transition-all`}
-              >
-                <Printer className="w-3.5 h-3.5" /> Imprimir Ficha
-              </button>
-              <button 
-                onClick={() => setViewingBatch(null)} 
-                className="flex-1 py-3 bg-white border border-slate-200 text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-100 transition-all"
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <header className="border-b border-slate-200 pb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-[#14213D] uppercase tracking-tighter">Entrada de Insumos</h1>
@@ -237,7 +139,16 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
                 </div>
                 <div className="space-y-1">
                   <label className={labelClass(errors.quantity)}>Qtd</label>
-                  <input type="number" min="1" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} className={inputClass(errors.quantity)} />
+                  <input 
+                    type="number" 
+                    min="1" 
+                    value={quantity} 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setQuantity(val === '' ? '' : Number(val));
+                    }} 
+                    className={inputClass(errors.quantity)} 
+                  />
                 </div>
                 <button 
                   type="button"
