@@ -195,7 +195,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, collab
               onChange={(e) => setFilterYear(Number(e.target.value))}
               className="w-full appearance-none bg-slate-50 border border-slate-100 px-4 py-2.5 text-[10px] font-bold uppercase outline-none focus:border-slate-300 transition-all"
             >
-              {[2024, 2025].map(y => <option key={y} value={y}>{y}</option>)}
+              {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(y => <option key={y} value={y}>{y}</option>)}
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
           </div>
