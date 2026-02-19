@@ -55,20 +55,26 @@ const App: React.FC = () => {
     if (!configured || !activeUnit) return;
     setLoading(true);
     try {
-      const [prods, cols, staff, movs, ents] = await Promise.all([
+      const [prodsRes, colsRes, staffRes, movsRes, entsRes] = await Promise.all([
         supabase.from('products').select('*').eq('location', activeUnit).order('name'),
         supabase.from('collaborators').select('*').eq('location', activeUnit).order('name'),
         supabase.from('stock_staff').select('*').eq('location', activeUnit).order('name'),
-        supabase.from('movements').select('*').eq('unit', activeUnit).order('created_at', { ascending: false }),
-        supabase.from('entries').select('*').eq('unit', activeUnit).order('created_at', { ascending: false })
+        supabase.from('movements').select('*').eq('unit', activeUnit).order('id', { ascending: false }),
+        supabase.from('entries').select('*').eq('unit', activeUnit).order('id', { ascending: false })
       ]);
 
-      setProducts(prods.data || []);
-      setCollaborators(cols.data || []);
-      setStockStaff(staff.data || []);
+      if (prodsRes.error) console.error("Erro Produtos:", prodsRes.error);
+      if (colsRes.error) console.error("Erro Colaboradores:", colsRes.error);
+      if (staffRes.error) console.error("Erro Operadores:", staffRes.error);
+      if (movsRes.error) console.error("Erro Movimentações:", movsRes.error);
+      if (entsRes.error) console.error("Erro Entradas:", entsRes.error);
+
+      setProducts(prodsRes.data || []);
+      setCollaborators(colsRes.data || []);
+      setStockStaff(staffRes.data || []);
       
-      if (movs.data) {
-        setMovements(movs.data.map(m => ({
+      if (movsRes.data) {
+        setMovements(movsRes.data.map(m => ({
           id: m.id,
           date: m.date,
           time: m.time,
@@ -84,8 +90,8 @@ const App: React.FC = () => {
         setMovements([]);
       }
 
-      if (ents.data) {
-        setEntries(ents.data.map(e => ({
+      if (entsRes.data) {
+        setEntries(entsRes.data.map(e => ({
           id: e.id,
           date: e.date,
           time: e.time,
@@ -177,28 +183,38 @@ const App: React.FC = () => {
     if (!activeUnit) return;
     const now = new Date();
     
-    // 1. Log the entry
-    const { error: entryError } = await supabase.from('entries').insert([{
-      date: now.toLocaleDateString('pt-br'),
-      time: now.toLocaleTimeString('pt-br', { hour: '2-digit', minute: '2-digit' }),
-      product_id: data.productId,
-      quantity: data.quantity,
-      stock_staff_id: data.staffId,
-      signature: data.signature,
-      unit: activeUnit
-    }]);
+    try {
+      // 1. Log the entry
+      const { error: entryError } = await supabase.from('entries').insert([{
+        date: now.toLocaleDateString('pt-br'),
+        time: now.toLocaleTimeString('pt-br', { hour: '2-digit', minute: '2-digit' }),
+        product_id: data.productId,
+        quantity: data.quantity,
+        stock_staff_id: data.staffId,
+        signature: data.signature,
+        unit: activeUnit
+      }]);
 
-    if (entryError) {
-      console.error(entryError);
-      return;
-    }
+      if (entryError) {
+        console.error("Erro ao inserir entrada:", entryError);
+        alert("Falha ao salvar o histórico de entrada. Verifique a conexão.");
+        return;
+      }
 
-    // 2. Update stock
-    const product = products.find(p => p.id === data.productId);
-    if (product) {
-      const newStock = product.stock + data.quantity;
-      await supabase.from('products').update({ stock: newStock }).eq('id', data.productId);
-      await fetchData();
+      // 2. Update stock
+      const product = products.find(p => p.id === data.productId);
+      if (product) {
+        const newStock = product.stock + data.quantity;
+        const { error: updateError } = await supabase.from('products').update({ stock: newStock }).eq('id', data.productId);
+        
+        if (updateError) {
+          console.error("Erro ao atualizar estoque:", updateError);
+        }
+        
+        await fetchData();
+      }
+    } catch (err) {
+      console.error("Erro inesperado na entrada de estoque:", err);
     }
   }, [products, activeUnit, fetchData]);
 

@@ -86,11 +86,11 @@ const Management: React.FC<ManagementProps> = ({
           </div>
         </div>
 
-        {/* Cadastro de Colaboradoras */}
+        {/* Cadastro de Colaboradores */}
         <div className="bg-white border border-slate-200 shadow-sm flex flex-col">
           <div className="p-6 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
             <Briefcase className={`w-3 h-3 ${theme.primaryText}`} />
-            <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-600">Cadastro de Colaboradoras</h2>
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-600">Cadastro de Colaboradores</h2>
           </div>
           <div className="p-6 space-y-4 border-b border-slate-100">
             <input 
@@ -109,7 +109,7 @@ const Management: React.FC<ManagementProps> = ({
               onClick={() => { if(colName && colDept) { onAddCollaborator({ name: colName, department: colDept }); setColName(''); setColDept(''); } }} 
               className={btnClass}
             >
-              <Plus className="w-3 h-3" /> Registrar Colaboradora
+              <Plus className="w-3 h-3" /> Registrar Colaborador
             </button>
           </div>
           <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
