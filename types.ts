@@ -38,6 +38,7 @@ export interface Movement {
 
 export interface Entry {
   id: string;
+  batchId?: string; // Identificador do lote para agrupar múltiplos itens
   date: string;
   time: string;
   productId: string;

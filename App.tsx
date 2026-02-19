@@ -93,6 +93,7 @@ const App: React.FC = () => {
       if (entsRes.data) {
         setEntries(entsRes.data.map(e => ({
           id: e.id,
+          batchId: e.batch_id,
           date: e.date,
           time: e.time,
           productId: e.product_id,
@@ -179,40 +180,42 @@ const App: React.FC = () => {
     );
   }, [fetchData]);
 
-  const handleAddStock = useCallback(async (data: { productId: string, quantity: number, staffId: string, signature: string }) => {
+  const handleAddStock = useCallback(async (data: { items: { productId: string, quantity: number }[], staffId: string, signature: string }) => {
     if (!activeUnit) return;
     const now = new Date();
+    const batchId = `BATCH-${now.getTime()}`;
     
     try {
-      // 1. Log the entry
-      const { error: entryError } = await supabase.from('entries').insert([{
+      // 1. Log the entries
+      const entriesToInsert = data.items.map(item => ({
+        batch_id: batchId,
         date: now.toLocaleDateString('pt-br'),
         time: now.toLocaleTimeString('pt-br', { hour: '2-digit', minute: '2-digit' }),
-        product_id: data.productId,
-        quantity: data.quantity,
+        product_id: item.productId,
+        quantity: item.quantity,
         stock_staff_id: data.staffId,
         signature: data.signature,
         unit: activeUnit
-      }]);
+      }));
+
+      const { error: entryError } = await supabase.from('entries').insert(entriesToInsert);
 
       if (entryError) {
         console.error("Erro ao inserir entrada:", entryError);
-        alert("Falha ao salvar o histórico de entrada. Verifique a conexão.");
+        alert(`Erro do Banco de Dados: ${entryError.message} (Código: ${entryError.code})`);
         return;
       }
 
-      // 2. Update stock
-      const product = products.find(p => p.id === data.productId);
-      if (product) {
-        const newStock = product.stock + data.quantity;
-        const { error: updateError } = await supabase.from('products').update({ stock: newStock }).eq('id', data.productId);
-        
-        if (updateError) {
-          console.error("Erro ao atualizar estoque:", updateError);
+      // 2. Update stock for each product
+      for (const item of data.items) {
+        const product = products.find(p => p.id === item.productId);
+        if (product) {
+          const newStock = product.stock + item.quantity;
+          await supabase.from('products').update({ stock: newStock }).eq('id', item.productId);
         }
-        
-        await fetchData();
       }
+      
+      await fetchData();
     } catch (err) {
       console.error("Erro inesperado na entrada de estoque:", err);
     }

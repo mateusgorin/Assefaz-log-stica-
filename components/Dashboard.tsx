@@ -271,12 +271,12 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, collab
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart layout="vertical" data={collaboratorRanking} margin={{ left: 30, right: 40 }}>
+              <BarChart layout="vertical" data={collaboratorRanking} margin={{ left: 40, right: 50, top: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                 <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" width={100} fontSize={9} tick={{fill: '#64748b', fontWeight: 'bold'}} axisLine={false} tickLine={false} />
+                <YAxis dataKey="name" type="category" width={110} fontSize={8} tick={{fill: '#64748b', fontWeight: 'bold'}} axisLine={false} tickLine={false} />
                 <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{fontSize: '10px', borderRadius: '0', border: '1px solid #e2e8f0'}} />
-                <Bar dataKey="total" fill={theme.primary} radius={[0, 4, 4, 0]} barSize={24} label={{ position: 'right', fontSize: 10, fill: '#64748b', fontWeight: 'bold' }} />
+                <Bar dataKey="total" fill={theme.primary} radius={[0, 4, 4, 0]} barSize={20} label={{ position: 'right', fontSize: 9, fill: '#64748b', fontWeight: 'bold', offset: 10 }} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -291,11 +291,11 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, collab
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={productRanking} cx="50%" cy="40%" innerRadius={50} outerRadius={75} paddingAngle={5} dataKey="value">
+                <Pie data={productRanking} cx="50%" cy="35%" innerRadius={45} outerRadius={70} paddingAngle={5} dataKey="value">
                   {productRanking.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                 </Pie>
                 <Tooltip contentStyle={{fontSize: '10px', borderRadius: '0'}} />
-                <Legend layout="horizontal" align="center" verticalAlign="bottom" iconType="circle" wrapperStyle={{ paddingTop: '20px' }} formatter={(value, entry: any) => <span className="text-[8px] uppercase font-bold text-slate-500">{value} ({entry.payload.percent}%)</span>} />
+                <Legend layout="horizontal" align="center" verticalAlign="bottom" iconType="circle" wrapperStyle={{ paddingTop: '10px', bottom: 0 }} formatter={(value, entry: any) => <span className="text-[7px] sm:text-[8px] uppercase font-bold text-slate-500">{value} ({entry.payload.percent}%)</span>} />
               </PieChart>
             </ResponsiveContainer>
           </div>
