@@ -313,12 +313,12 @@ const App: React.FC = () => {
               onChange={(e) => setPasscodeInput(e.target.value)}
               className={`w-full bg-slate-50 border ${passError ? 'border-red-500' : 'border-slate-200'} px-4 py-4 text-center text-lg font-black tracking-[0.2em] focus:outline-none focus:border-[#14213D] transition-all`}
             />
-            {passError && <p className="text-[9px] text-red-500 font-bold uppercase">Senha incorreta!</p>}
-            <button type="submit" className="w-full bg-[#14213D] text-white py-4 font-bold uppercase tracking-widest text-[11px] hover:bg-black transition-all flex items-center justify-center gap-2">
+            {passError && <p className="text-[10px] text-red-500 font-bold uppercase">Senha incorreta!</p>}
+            <button type="submit" className="w-full bg-[#14213D] text-white py-4 font-bold uppercase tracking-widest text-xs hover:bg-black transition-all flex items-center justify-center gap-2">
               Entrar no sistema <ArrowRight className="w-4 h-4" />
             </button>
           </div>
-          <p className="mt-8 text-[9px] text-slate-300 uppercase tracking-widest font-medium">Uso restrito a funcionários autorizados</p>
+          <p className="mt-8 text-[10px] text-slate-300 uppercase tracking-widest font-medium">Uso restrito a funcionários autorizados</p>
         </form>
       </div>
     );
@@ -331,7 +331,7 @@ const App: React.FC = () => {
           <AlertTriangle className="w-16 h-16 text-amber-500 mx-auto mb-6" />
           <h1 className="text-xl font-bold text-slate-800 uppercase tracking-tighter mb-4">Configuração Pendente</h1>
           <p className="text-sm text-slate-500 mb-8 leading-relaxed">Conecte o sistema ao seu banco de dados Supabase.</p>
-          <button onClick={() => setConfigured(isConfigured())} className="w-full bg-slate-800 text-white py-3 font-bold uppercase tracking-widest text-[10px] hover:bg-black transition-colors">Verificar agora</button>
+          <button onClick={() => setConfigured(isConfigured())} className="w-full bg-slate-800 text-white py-3 font-bold uppercase tracking-widest text-xs hover:bg-black transition-colors">Verificar agora</button>
         </div>
       </div>
     );
@@ -402,19 +402,19 @@ const App: React.FC = () => {
             <h3 className="text-center text-lg font-black text-slate-800 uppercase tracking-tighter mb-2">
               {confirmModal.title}
             </h3>
-            <p className="text-center text-[10px] text-slate-500 uppercase font-bold tracking-tight leading-relaxed mb-8">
+            <p className="text-center text-xs text-slate-500 uppercase font-bold tracking-tight leading-relaxed mb-8">
               {confirmModal.message}
             </p>
             <div className="grid grid-cols-2 gap-3">
               <button 
                 onClick={closeConfirm} 
-                className="py-3 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-200 transition-colors"
+                className="py-3 bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-widest hover:bg-slate-200 transition-colors"
               >
                 Cancelar
               </button>
               <button 
                 onClick={confirmModal.onConfirm} 
-                className={`py-3 ${theme.confirmBtn} text-white text-[10px] font-bold uppercase tracking-widest transition-colors shadow-lg shadow-black/10`}
+                className={`py-3 ${theme.confirmBtn} text-white text-xs font-bold uppercase tracking-widest transition-colors shadow-lg shadow-black/10`}
               >
                 Sim, Apagar
               </button>
@@ -431,18 +431,18 @@ const App: React.FC = () => {
             <Building2 className="w-6 h-6" />
             <span className="font-bold text-lg uppercase">Assefaz</span>
           </div>
-          <p className="text-[9px] uppercase tracking-wider text-white/50 font-semibold">Controle Logístico</p>
+          <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Controle Logístico</p>
         </div>
         <nav className="flex-1 pt-6 overflow-y-auto custom-scrollbar">
           {MENU_ITEMS.map((item) => (
-            <button key={item.id} onClick={() => { setCurrentView(item.id); setSidebarOpen(false); }} className={`w-full flex items-center gap-4 px-8 py-4 text-[11px] uppercase tracking-widest transition-all border-l-4 ${currentView === item.id ? `bg-white/10 ${theme.itemActiveDetail} text-white font-bold` : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'}`}>
+            <button key={item.id} onClick={() => { setCurrentView(item.id); setSidebarOpen(false); }} className={`w-full flex items-center gap-4 px-8 py-4 text-xs uppercase tracking-widest transition-all border-l-4 ${currentView === item.id ? `bg-white/10 ${theme.itemActiveDetail} text-white font-bold` : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'}`}>
               {item.icon}
               <span>{item.label}</span>
             </button>
           ))}
         </nav>
         <div className="p-8 border-t border-white/5 bg-black/5 text-center">
-          <p className="text-[8px] uppercase tracking-[0.3em] font-medium text-white/30">Desenvolvido por Mateus Miranda</p>
+          <p className="text-[10px] uppercase tracking-[0.3em] font-medium text-white/20">Desenvolvido por Mateus Miranda</p>
         </div>
       </aside>
 
@@ -454,7 +454,7 @@ const App: React.FC = () => {
           </div>
           <div className="flex items-center gap-3 sm:gap-6">
             <button onClick={fetchData} className="p-2 text-slate-400 hover:text-slate-600 transition-colors" title="Sincronizar dados"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
-            <div className={`h-8 px-3 flex items-center justify-center text-white text-[10px] font-bold ${theme.badgeBg}`}>{activeUnit.toUpperCase()}</div>
+            <div className={`h-8 px-3 flex items-center justify-center text-white text-xs font-bold ${theme.badgeBg}`}>{activeUnit.toUpperCase()}</div>
             <button onClick={() => setActiveUnit(null)} className="text-slate-400 hover:text-red-600 p-1" title="Sair da Unidade"><LogOut className="w-4 h-4" /></button>
           </div>
         </header>

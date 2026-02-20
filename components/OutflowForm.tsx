@@ -116,7 +116,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
     border
   `;
 
-  const labelClass = "text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-2 transition-colors";
+  const labelClass = "text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-2 transition-colors";
 
   const getProduct = (id: string) => products.find(p => p.id === id);
 
@@ -124,7 +124,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
     <div className="space-y-6 sm:space-y-10 animate-in fade-in duration-500">
       <header className="border-b border-slate-200 pb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-[#14213D] uppercase tracking-tighter">Requisição de Material</h1>
-        <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-medium">Registro de Saída Múltipla — {unit.toUpperCase()}</p>
+        <p className="text-[10px] sm:text-xs text-slate-500 mt-1 uppercase tracking-[0.2em] font-medium">Registro de Saída Múltipla — {unit.toUpperCase()}</p>
       </header>
 
       <div className="max-w-5xl mx-auto space-y-12">
@@ -171,7 +171,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
                 <button 
                   type="button"
                   onClick={handleAddItem}
-                  className="bg-slate-800 text-white py-3.5 px-4 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all"
+                  className="bg-slate-800 text-white py-3.5 px-4 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest hover:bg-black transition-all"
                 >
                   <Plus className="w-4 h-4" /> Adicionar
                 </button>
@@ -181,21 +181,21 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
               <div className="border border-slate-100">
                 <div className="bg-slate-50 px-4 py-2 border-b border-slate-100 flex items-center gap-2">
                   <ListChecks className="w-3 h-3 text-slate-400" />
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Itens no Lote de Saída</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Itens no Lote de Saída</span>
                 </div>
                 <div className="min-h-[150px] max-h-[300px] overflow-y-auto custom-scrollbar">
                   {batchItems.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center p-8 text-center opacity-30">
                       <ShoppingCart className="w-8 h-8 mb-2" />
-                      <p className="text-[10px] uppercase font-bold tracking-widest">Lote Vazio</p>
+                      <p className="text-xs uppercase font-bold tracking-widest">Lote Vazio</p>
                     </div>
                   ) : (
                     <table className="w-full text-left border-collapse">
                       <tbody className="divide-y divide-slate-50">
                         {batchItems.map((item, idx) => (
                           <tr key={idx} className="hover:bg-slate-50/50">
-                            <td className="px-4 py-3 text-[10px] font-bold text-slate-700 uppercase">{getProduct(item.productId)?.name}</td>
-                            <td className="px-4 py-3 text-[10px] font-black text-slate-900 text-right">{item.quantity} {getProduct(item.productId)?.unit}</td>
+                            <td className="px-4 py-3 text-xs font-bold text-slate-700 uppercase">{getProduct(item.productId)?.name}</td>
+                            <td className="px-4 py-3 text-xs font-black text-slate-900 text-right">{item.quantity} {getProduct(item.productId)?.unit}</td>
                             <td className="px-4 py-3 text-right w-10">
                               <button onClick={() => handleRemoveItem(idx)} className="text-slate-300 hover:text-red-500 p-1">
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -288,7 +288,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, collaborators, products
                 </div>
               </div>
 
-              <button type="submit" disabled={loading || success || batchItems.length === 0} className={`w-full py-4 text-white font-bold uppercase tracking-[0.2em] text-[10px] transition-all flex items-center justify-center gap-3 shadow-lg ${loading || batchItems.length === 0 ? 'bg-slate-400' : theme.primaryButton}`}>
+              <button type="submit" disabled={loading || success || batchItems.length === 0} className={`w-full py-4 text-white font-bold uppercase tracking-[0.2em] text-xs transition-all flex items-center justify-center gap-3 shadow-lg ${loading || batchItems.length === 0 ? 'bg-slate-400' : theme.primaryButton}`}>
                 {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Gravando...</> : <><FileText className="w-4 h-4" /> Confirmar Saída</>}
               </button>
             </form>

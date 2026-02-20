@@ -263,7 +263,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
     <div className="space-y-6 sm:space-y-10 pb-10">
       <header className="border-b border-slate-200 pb-6 print:hidden">
         <h1 className="text-xl sm:text-2xl font-bold text-[#14213D] uppercase tracking-tighter">Exportação Gerencial</h1>
-        <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-medium">Validação e Emissão de Documentos de Auditoria</p>
+        <p className="text-[10px] sm:text-xs text-slate-500 mt-1 uppercase tracking-[0.2em] font-medium">Validação e Emissão de Documentos de Auditoria</p>
       </header>
 
       {/* Seletor de Período */}
@@ -273,7 +273,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
           <select 
             value={selectedMonth} 
             onChange={(e) => setSelectedMonth(Number(e.target.value))} 
-            className={`appearance-none bg-white border border-slate-200 px-10 py-2.5 text-[10px] font-bold uppercase tracking-widest outline-none ${theme.primaryFocus} shadow-sm transition-all min-w-[160px]`}
+            className={`appearance-none bg-white border border-slate-200 px-10 py-2.5 text-xs font-bold uppercase tracking-widest outline-none ${theme.primaryFocus} shadow-sm transition-all min-w-[160px]`}
           >
             {months.map(m => <option key={m.value} value={m.value}>{m.label.toUpperCase()}</option>)}
           </select>
@@ -285,7 +285,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
           <select 
             value={selectedYear} 
             onChange={(e) => setSelectedYear(Number(e.target.value))} 
-            className={`appearance-none bg-white border border-slate-200 px-10 py-2.5 text-[10px] font-bold uppercase tracking-widest outline-none ${theme.primaryFocus} shadow-sm transition-all min-w-[120px]`}
+            className={`appearance-none bg-white border border-slate-200 px-10 py-2.5 text-xs font-bold uppercase tracking-widest outline-none ${theme.primaryFocus} shadow-sm transition-all min-w-[120px]`}
           >
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
@@ -296,7 +296,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
       <div className="bg-white border border-slate-200 p-8 sm:p-12 shadow-sm relative overflow-hidden">
         {done && (
           <div className="absolute top-4 right-4 animate-in slide-in-from-right-4 duration-300 print:hidden">
-             <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-2 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+             <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-2 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                <CheckCircle className="w-3 h-3" /> Relatório Validado
              </div>
           </div>
@@ -310,10 +310,10 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
           <div className="text-center mb-10">
             <h2 className="text-xl font-bold text-slate-800 uppercase tracking-tighter mb-4">Relatório Integrado de Auditoria</h2>
             <div className="flex flex-wrap gap-4 justify-center items-center">
-              <span className={`text-[9px] uppercase tracking-widest font-bold border ${unit === 'sede' ? 'border-blue-100 bg-blue-50 text-blue-700' : 'border-amber-100 bg-amber-50 text-amber-700'} px-4 py-1`}>
+              <span className={`text-[10px] uppercase tracking-widest font-bold border ${unit === 'sede' ? 'border-blue-100 bg-blue-50 text-blue-700' : 'border-amber-100 bg-amber-50 text-amber-700'} px-4 py-1`}>
                 UNIDADE {unit.toUpperCase()}
               </span>
-              <span className="text-[9px] uppercase tracking-widest font-bold bg-slate-100 text-slate-600 px-4 py-1">
+              <span className="text-[10px] uppercase tracking-widest font-bold bg-slate-100 text-slate-600 px-4 py-1">
                 PERÍODO: {periodLabel}
               </span>
             </div>
@@ -321,19 +321,19 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
 
           <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
              <div className="bg-slate-50/50 p-4 border-l-4 border-slate-200 text-center">
-                <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">Total Período</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Total Período</p>
                 <p className="text-lg font-black text-slate-700">{stats.totalQty}</p>
              </div>
              <div className="bg-slate-50/50 p-4 border-l-4 border-slate-200 text-center">
-                <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">Movimentações</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Movimentações</p>
                 <p className="text-lg font-black text-slate-700">{filteredMovements.length}</p>
              </div>
              <div className="bg-slate-50/50 p-4 border-l-4 border-slate-200 text-center">
-                <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">Top Colaborador</p>
-                <p className="text-[10px] font-black text-slate-700 uppercase truncate">{stats.colRanking[0]?.name || 'N/A'}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Top Colaborador</p>
+                <p className="text-xs font-black text-slate-700 uppercase truncate">{stats.colRanking[0]?.name || 'N/A'}</p>
              </div>
              <div className="bg-slate-50/50 p-4 border-l-4 border-slate-200 text-center">
-                <p className="text-[8px] font-bold text-slate-400 uppercase mb-1">Crescimento</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Crescimento</p>
                 <p className={`text-lg font-black ${stats.growth > 0 ? 'text-red-600' : 'text-green-600'}`}>{stats.growth.toFixed(1)}%</p>
              </div>
           </div>
@@ -345,7 +345,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
               className="flex-1 flex flex-col items-center gap-3 p-10 bg-white hover:bg-slate-50 border-b md:border-b-0 md:border-r border-slate-100 transition-all group disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {generating === 'pdf' ? <Loader2 className="w-5 h-5 text-slate-800 animate-spin" /> : <Download className="w-5 h-5 text-slate-300 group-hover:text-slate-800 transition-colors" />}
-              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Relatório PDF Completo</span>
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Relatório PDF Completo</span>
             </button>
             
             <button 
@@ -354,7 +354,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
               className="flex-1 flex flex-col items-center gap-3 p-10 bg-white hover:bg-slate-50 border-b md:border-b-0 md:border-r border-slate-100 transition-all group disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {generating === 'csv' ? <Loader2 className="w-5 h-5 text-slate-800 animate-spin" /> : <FileSpreadsheet className="w-5 h-5 text-slate-300 group-hover:text-slate-800 transition-colors" />}
-              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Dados Brutos (CSV)</span>
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Dados Brutos (CSV)</span>
             </button>
 
             <button 
@@ -363,15 +363,15 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, products, collaborat
               className="flex-1 flex flex-col items-center gap-3 p-10 bg-white hover:bg-slate-50 transition-all group disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <Printer className="w-5 h-5 text-slate-300 group-hover:text-slate-800 transition-colors" />
-              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">Imprimir Visualização</span>
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Imprimir Visualização</span>
             </button>
           </div>
 
           <div className="bg-amber-50 border border-amber-100 p-6 flex items-start gap-4 text-left print:hidden">
             <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
             <div>
-              <p className="text-[10px] font-bold text-amber-800 uppercase mb-1">Garantia de Integridade</p>
-              <p className="text-[10px] text-amber-600 leading-relaxed uppercase font-medium">
+              <p className="text-xs font-bold text-amber-800 uppercase mb-1">Garantia de Integridade</p>
+              <p className="text-xs text-amber-600 leading-relaxed uppercase font-medium">
                 O arquivo PDF exportado conterá automaticamente os rankings mensais, indicadores de crescimento, ranking acumulado e histórico detalhado, validando todos os dados visualizados no Dashboard.
               </p>
             </div>
