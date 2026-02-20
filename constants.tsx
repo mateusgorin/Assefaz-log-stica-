@@ -9,7 +9,7 @@ import {
   FileText,
   Boxes
 } from 'lucide-react';
-import { Product, Collaborator, StockStaff, View, Movement } from './types';
+import { Product, Sector, StockStaff, View, Movement } from './types';
 
 export const UNITS = [
   { id: 'sede', name: 'Sede', description: 'Administração Assefaz Sede', color: 'blue' },
@@ -58,16 +58,15 @@ export const INITIAL_PRODUCTS: Product[] = [
   { id: '28', name: 'Rodo', category: 'Utensílio', unit: 'Unidade', stock: 15, location: 'sede' },
 ];
 
-export const INITIAL_COLLABORATORS: Collaborator[] = [
-  // Added location property to match Collaborator interface
-  { id: 'c1', name: 'Janete', department: 'Térreo e Sobreloja', location: 'sede' },
-  { id: 'c2', name: 'Cleide', department: '1º Andar', location: 'sede' },
-  { id: 'c3', name: 'Laurita', department: '2º e 6º Andar', location: 'sede' },
-  { id: 'c4', name: 'Leiliane', department: '3º Andar', location: 'sede' },
-  { id: 'c5', name: 'Tatiana', department: '4º e 5º Andar', location: 'sede' },
-  { id: 'c6', name: 'Derick', department: 'Sede e Arquivo 714', location: 'sede' },
-  { id: 'c7', name: 'Copa', department: '5º Andar', location: 'sede' },
-  { id: 'c8', name: 'Refeitório', department: '6º Andar', location: 'sede' },
+export const INITIAL_SECTORS: Sector[] = [
+  { id: 'c1', name: 'Térreo e Sobreloja', location: 'sede' },
+  { id: 'c2', name: '1º Andar', location: 'sede' },
+  { id: 'c3', name: '2º e 6º Andar', location: 'sede' },
+  { id: 'c4', name: '3º Andar', location: 'sede' },
+  { id: 'c5', name: '4º e 5º Andar', location: 'sede' },
+  { id: 'c6', name: 'Sede e Arquivo 714', location: 'sede' },
+  { id: 'c7', name: 'Copa', location: 'sede' },
+  { id: 'c8', name: 'Refeitório', location: 'sede' },
 ];
 
 export const INITIAL_STOCK_STAFF: StockStaff[] = [
@@ -81,7 +80,7 @@ export const INITIAL_STOCK_STAFF: StockStaff[] = [
 
 const generateMockMovements = (): Movement[] => {
   const movements: Movement[] = [];
-  const collaborators = INITIAL_COLLABORATORS;
+  const sectors = INITIAL_SECTORS;
   const products = INITIAL_PRODUCTS;
   const staff = INITIAL_STOCK_STAFF;
   const units: ('sede' | '506')[] = ['sede', '506'];
@@ -96,7 +95,7 @@ const generateMockMovements = (): Movement[] => {
     const randomMinute = Math.floor(Math.random() * 60);
     const time = `${randomHour.toString().padStart(2, '0')}:${randomMinute.toString().padStart(2, '0')}`;
     
-    const col = collaborators[Math.floor(Math.random() * collaborators.length)];
+    const sec = sectors[Math.floor(Math.random() * sectors.length)];
     const prod = products[Math.floor(Math.random() * products.length)];
     const stf = staff[Math.floor(Math.random() * staff.length)];
     const unit = units[Math.floor(Math.random() * units.length)];
@@ -105,7 +104,7 @@ const generateMockMovements = (): Movement[] => {
       id: `mock-${i}`,
       date: date.toLocaleDateString('pt-br'),
       time: time,
-      collaboratorId: col.id,
+      sectorId: sec.id,
       productId: prod.id,
       quantity: Math.floor(Math.random() * 10) + 1,
       stockStaffId: stf.id,

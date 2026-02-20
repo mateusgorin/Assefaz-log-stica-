@@ -10,10 +10,9 @@ export interface Product {
   location: Unit; // Unidade física (Sede ou 506)
 }
 
-export interface Collaborator {
+export interface Sector {
   id: string;
   name: string;
-  department: string;
   location: Unit;
 }
 
@@ -28,7 +27,7 @@ export interface Movement {
   batchId?: string; // Identificador do lote para agrupar múltiplos itens
   date: string;
   time: string;
-  collaboratorId: string;
+  sectorId: string;
   productId: string;
   quantity: number;
   stockStaffId: string;
@@ -44,6 +43,7 @@ export interface Entry {
   time: string;
   productId: string;
   quantity: number;
+  unitPrice: number; // Valor unitário em Reais
   stockStaffId: string;
   signature: string;
   unit: Unit;
