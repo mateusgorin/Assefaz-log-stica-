@@ -90,14 +90,9 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
       setLoading(false);
       setSuccess(true);
       
-      // Limpar formulário
-      setSignature('');
-      setStaffId('');
-      setBatchItems([]);
-
       setTimeout(() => {
-        setSuccess(false);
-      }, 2500);
+        onNavigate(View.HISTORY);
+      }, 1500);
     }, 800);
   };
 

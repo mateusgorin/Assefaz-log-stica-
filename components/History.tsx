@@ -12,10 +12,11 @@ interface HistoryProps {
   stockStaff: StockStaff[];
   onDelete: (id: string) => void;
   onDeleteEntry: (batchId: string) => void;
+  initialTab?: 'outflows' | 'entries';
 }
 
-const History: React.FC<HistoryProps> = ({ unit, movements, entries, products, sectors, stockStaff, onDelete, onDeleteEntry }) => {
-  const [activeTab, setActiveTab] = useState<'outflows' | 'entries'>('outflows');
+const History: React.FC<HistoryProps> = ({ unit, movements, entries, products, sectors, stockStaff, onDelete, onDeleteEntry, initialTab = 'outflows' }) => {
+  const [activeTab, setActiveTab] = useState<'outflows' | 'entries'>(initialTab);
   const [viewingMovementBatch, setViewingMovementBatch] = useState<Movement[] | null>(null);
   const [viewingBatch, setViewingBatch] = useState<Entry[] | null>(null);
   const [searchTerm, setSearchTerm] = useState('');

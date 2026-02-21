@@ -22,6 +22,7 @@ const App: React.FC = () => {
   
   const [activeUnit, setActiveUnit] = useState<Unit | null>(null);
   const [currentView, setCurrentView] = useState<View>(View.DASHBOARD);
+  const [historyTab, setHistoryTab] = useState<'outflows' | 'entries'>('outflows');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [configured, setConfigured] = useState(isConfigured());
@@ -469,10 +470,10 @@ const App: React.FC = () => {
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 custom-scrollbar">
           <div className="max-w-6xl mx-auto">
             {currentView === View.DASHBOARD && <Dashboard unit={activeUnit} movements={movements} products={products} sectors={sectors} />}
-            {currentView === View.OUTFLOW && <OutflowForm unit={activeUnit} products={products} sectors={sectors} stockStaff={stockStaff} onAddMovement={handleAddMovement} onNavigate={(view) => setCurrentView(view)} />}
-            {currentView === View.ENTRY && <EntryForm unit={activeUnit} products={products} stockStaff={stockStaff} entries={entries} onAddStock={handleAddStock} onNavigate={(view) => setCurrentView(view)} />}
+            {currentView === View.OUTFLOW && <OutflowForm unit={activeUnit} products={products} sectors={sectors} stockStaff={stockStaff} onAddMovement={handleAddMovement} onNavigate={(view) => { setCurrentView(view); setHistoryTab('outflows'); }} />}
+            {currentView === View.ENTRY && <EntryForm unit={activeUnit} products={products} stockStaff={stockStaff} entries={entries} onAddStock={handleAddStock} onNavigate={(view) => { setCurrentView(view); setHistoryTab('entries'); }} />}
             {currentView === View.STOCK && <Inventory unit={activeUnit} products={products} onUpdateStock={handleUpdateStock} />}
-            {currentView === View.HISTORY && <History unit={activeUnit} movements={movements} entries={entries} products={products} sectors={sectors} stockStaff={stockStaff} onDelete={handleDeleteMovement} onDeleteEntry={handleDeleteEntry} />}
+            {currentView === View.HISTORY && <History unit={activeUnit} movements={movements} entries={entries} products={products} sectors={sectors} stockStaff={stockStaff} onDelete={handleDeleteMovement} onDeleteEntry={handleDeleteEntry} initialTab={historyTab} />}
             {currentView === View.MANAGEMENT && <Management unit={activeUnit} products={products} sectors={sectors} stockStaff={stockStaff} onAddProduct={handleAddProduct} onAddSector={handleAddSector} onAddStaff={handleAddStaff} onDeleteProduct={handleDeleteProduct} onDeleteSector={handleDeleteSector} onDeleteStaff={handleDeleteStaff} />}
             {currentView === View.REPORTS && <Reports unit={activeUnit} movements={movements} entries={entries} products={products} sectors={sectors} stockStaff={stockStaff} />}
           </div>
