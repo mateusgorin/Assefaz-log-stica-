@@ -29,7 +29,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
     { value: 10, label: 'Outubro' }, { value: 11, label: 'Novembro' }, { value: 12, label: 'Dezembro' }
   ];
 
-  const years = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i);
+  const years = [2026, 2027, 2028, 2029, 2030];
 
   // --- LÓGICA DE CÁLCULO DE MÉTRICAS (Igual ao Dashboard para integridade) ---
   
@@ -380,46 +380,46 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
   return (
     <div className="space-y-6 sm:space-y-10 pb-10">
       <header className="border-b border-slate-200 pb-6 print:hidden">
-        <h1 className="text-[22px] font-semibold text-[#14213D] uppercase tracking-tighter">Exportação Gerencial</h1>
-        <p className="text-[14px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-normal">Validação e Emissão de Documentos de Auditoria</p>
+        <h1 className="text-[20px] font-semibold text-[#14213D] uppercase tracking-tighter">Exportação Gerencial</h1>
+        <p className="text-[12px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-normal">Validação e Emissão de Documentos de Auditoria</p>
       </header>
 
       {/* TABS DE RELATÓRIO */}
       <div className="flex border-b border-slate-200 print:hidden">
         <button 
           onClick={() => setActiveTab('outflows')}
-          className={`px-6 py-4 text-[14px] font-semibold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'outflows' ? `border-[#14213D] text-[#14213D]` : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+          className={`px-6 py-4 text-[12px] font-semibold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'outflows' ? `border-[#14213D] text-[#14213D]` : 'border-transparent text-slate-400 hover:text-slate-600'}`}
         >
           Relatório de Saídas
         </button>
         <button 
           onClick={() => setActiveTab('entries')}
-          className={`px-6 py-4 text-[14px] font-semibold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'entries' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+          className={`px-6 py-4 text-[12px] font-semibold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'entries' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
         >
           Relatório de Entradas
         </button>
       </div>
 
       {/* Seletor de Período */}
-      <div className="flex flex-col sm:flex-row gap-4 print:hidden">
-        <div className="relative flex-1 sm:flex-none">
+      <div className="flex flex-row gap-4 print:hidden">
+        <div className="relative flex-1">
           <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
           <select 
             value={selectedMonth} 
             onChange={(e) => setSelectedMonth(Number(e.target.value))} 
-            className={`appearance-none bg-white border border-slate-200 px-10 py-2.5 text-[14px] font-normal uppercase tracking-widest outline-none ${theme.primaryFocus} shadow-sm transition-all min-w-[160px]`}
+            className={`w-full appearance-none bg-white border border-slate-200 pl-10 pr-8 py-2.5 text-[12px] font-normal uppercase tracking-widest outline-none ${theme.primaryFocus} shadow-sm transition-all`}
           >
             {months.map(m => <option key={m.value} value={m.value}>{m.label.toUpperCase()}</option>)}
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5 pointer-events-none" />
         </div>
 
-        <div className="relative flex-1 sm:flex-none">
+        <div className="relative flex-1">
           <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-3.5 h-3.5" />
           <select 
             value={selectedYear} 
             onChange={(e) => setSelectedYear(Number(e.target.value))} 
-            className={`appearance-none bg-white border border-slate-200 px-10 py-2.5 text-[14px] font-normal uppercase tracking-widest outline-none ${theme.primaryFocus} shadow-sm transition-all min-w-[120px]`}
+            className={`w-full appearance-none bg-white border border-slate-200 pl-10 pr-8 py-2.5 text-[12px] font-normal uppercase tracking-widest outline-none ${theme.primaryFocus} shadow-sm transition-all`}
           >
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
@@ -430,7 +430,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
       <div className="bg-white border border-slate-200 p-8 sm:p-12 shadow-sm relative overflow-hidden">
         {done && (
           <div className="absolute top-4 right-4 animate-in slide-in-from-right-4 duration-300 print:hidden">
-             <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-2 text-[13px] font-semibold uppercase tracking-widest flex items-center gap-2">
+             <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-2 text-[11px] font-semibold uppercase tracking-widest flex items-center gap-2">
                <CheckCircle className="w-3 h-3" /> Relatório Validado
              </div>
           </div>
@@ -442,14 +442,14 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
           </div>
           
           <div className="text-center mb-10">
-            <h2 className="text-[22px] font-semibold text-slate-800 uppercase tracking-tighter mb-4">
+            <h2 className="text-[20px] font-semibold text-slate-800 uppercase tracking-tighter mb-4">
               {activeTab === 'outflows' ? 'Relatório Integrado de Saídas' : 'Relatório Integrado de Entradas'}
             </h2>
             <div className="flex flex-wrap gap-4 justify-center items-center">
-              <span className={`text-[13px] uppercase tracking-widest font-semibold border ${unit === 'sede' ? 'border-blue-100 bg-blue-50 text-blue-700' : 'border-amber-100 bg-amber-50 text-amber-700'} px-4 py-1`}>
+              <span className={`text-[11px] uppercase tracking-widest font-semibold border ${unit === 'sede' ? 'border-blue-100 bg-blue-50 text-blue-700' : 'border-amber-100 bg-amber-50 text-amber-700'} px-4 py-1`}>
                 UNIDADE {unit.toUpperCase()}
               </span>
-              <span className="text-[13px] uppercase tracking-widest font-semibold bg-slate-100 text-slate-600 px-4 py-1">
+              <span className="text-[11px] uppercase tracking-widest font-semibold bg-slate-100 text-slate-600 px-4 py-1">
                 PERÍODO: {periodLabel}
               </span>
             </div>
@@ -458,31 +458,31 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
           {activeTab === 'outflows' ? (
             <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
                <div className="bg-slate-50/50 p-4 border-l-4 border-slate-200 text-center">
-                  <p className="text-[13px] font-semibold text-slate-400 uppercase mb-1">Total Período</p>
-                  <p className="text-[28px] font-bold text-slate-700">{stats.totalQty}</p>
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase mb-1">Total Período</p>
+                  <p className="text-[26px] font-bold text-slate-700">{stats.totalQty}</p>
                </div>
                <div className="bg-slate-50/50 p-4 border-l-4 border-slate-200 text-center">
-                  <p className="text-[13px] font-semibold text-slate-400 uppercase mb-1">Movimentações</p>
-                  <p className="text-[28px] font-bold text-slate-700">{filteredMovements.length}</p>
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase mb-1">Movimentações</p>
+                  <p className="text-[26px] font-bold text-slate-700">{filteredMovements.length}</p>
                </div>
                <div className="bg-slate-50/50 p-4 border-l-4 border-slate-200 text-center">
-                  <p className="text-[13px] font-semibold text-slate-400 uppercase mb-1">Top Setor</p>
-                  <p className="text-[14px] font-bold text-slate-700 uppercase truncate">{stats.secRanking[0]?.name || 'N/A'}</p>
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase mb-1">Top Setor</p>
+                  <p className="text-[12px] font-bold text-slate-700 uppercase truncate">{stats.secRanking[0]?.name || 'N/A'}</p>
                </div>
                <div className="bg-slate-50/50 p-4 border-l-4 border-slate-200 text-center">
-                  <p className="text-[13px] font-semibold text-slate-400 uppercase mb-1">Crescimento</p>
-                  <p className={`text-[28px] font-bold ${stats.growth > 0 ? 'text-red-600' : 'text-green-600'}`}>{stats.growth.toFixed(1)}%</p>
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase mb-1">Crescimento</p>
+                  <p className={`text-[26px] font-bold ${stats.growth > 0 ? 'text-red-600' : 'text-green-600'}`}>{stats.growth.toFixed(1)}%</p>
                </div>
             </div>
           ) : (
             <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
                <div className="bg-slate-50/50 p-4 border-l-4 border-emerald-200 text-center">
-                  <p className="text-[13px] font-semibold text-slate-400 uppercase mb-1">Total Recebido (Itens)</p>
-                  <p className="text-[28px] font-bold text-slate-700">{entryStats.totalQty}</p>
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase mb-1">Total Recebido (Itens)</p>
+                  <p className="text-[26px] font-bold text-slate-700">{entryStats.totalQty}</p>
                </div>
                <div className="bg-slate-50/50 p-4 border-l-4 border-emerald-200 text-center">
-                  <p className="text-[13px] font-semibold text-slate-400 uppercase mb-1">Valor Total em Produtos</p>
-                  <p className="text-[28px] font-bold text-emerald-600">
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase mb-1">Valor Total em Produtos</p>
+                  <p className="text-[26px] font-bold text-emerald-600">
                     R$ {entryStats.totalValue.toLocaleString('pt-br', { minimumFractionDigits: 2 })}
                   </p>
                </div>
@@ -496,7 +496,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
               className="flex-1 flex flex-col items-center gap-3 p-10 bg-white hover:bg-slate-50 border-b md:border-b-0 md:border-r border-slate-100 transition-all group disabled:cursor-not-allowed"
             >
               {generating?.startsWith('pdf') ? <Loader2 className="w-5 h-5 text-slate-800 animate-spin" /> : <Download className="w-5 h-5 text-slate-500 group-hover:text-slate-800 transition-colors" />}
-              <span className="text-[14px] font-semibold uppercase tracking-[0.2em] text-slate-800">Relatório PDF Completo</span>
+              <span className="text-[12px] font-semibold uppercase tracking-[0.2em] text-slate-800">Relatório PDF Completo</span>
             </button>
             
             <button 
@@ -505,7 +505,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
               className="flex-1 flex flex-col items-center gap-3 p-10 bg-white hover:bg-slate-50 border-b md:border-b-0 md:border-r border-slate-100 transition-all group disabled:cursor-not-allowed"
             >
               {generating === 'csv' ? <Loader2 className="w-5 h-5 text-slate-800 animate-spin" /> : <FileSpreadsheet className="w-5 h-5 text-slate-500 group-hover:text-slate-800 transition-colors" />}
-              <span className="text-[14px] font-semibold uppercase tracking-[0.2em] text-slate-800">Dados Brutos (CSV)</span>
+              <span className="text-[12px] font-semibold uppercase tracking-[0.2em] text-slate-800">Dados Brutos (CSV)</span>
             </button>
 
             <button 
@@ -514,15 +514,15 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
               className="flex-1 flex flex-col items-center gap-3 p-10 bg-white hover:bg-slate-50 transition-all group disabled:cursor-not-allowed"
             >
               <Printer className="w-5 h-5 text-slate-500 group-hover:text-slate-800 transition-colors" />
-              <span className="text-[14px] font-semibold uppercase tracking-[0.2em] text-slate-800">Imprimir Visualização</span>
+              <span className="text-[12px] font-semibold uppercase tracking-[0.2em] text-slate-800">Imprimir Visualização</span>
             </button>
           </div>
 
           <div className="bg-amber-50 border border-amber-100 p-6 flex items-start gap-4 text-left print:hidden">
             <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
             <div>
-              <p className="text-[13px] font-semibold text-amber-800 uppercase mb-1">Garantia de Integridade</p>
-              <p className="text-[13px] text-amber-600 leading-relaxed uppercase font-normal">
+              <p className="text-[11px] font-semibold text-amber-800 uppercase mb-1">Garantia de Integridade</p>
+              <p className="text-[11px] text-amber-600 leading-relaxed uppercase font-normal">
                 {activeTab === 'outflows' 
                   ? "O arquivo PDF exportado conterá automaticamente os rankings mensais, indicadores de crescimento, ranking acumulado e histórico detalhado de saídas."
                   : "O arquivo PDF exportado conterá o resumo de recebimento, valor total investido e o histórico detalhado de todas as entradas do período."}
@@ -541,7 +541,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
            </div>
            
            {activeTab === 'outflows' ? (
-             <table className="w-full text-[9px] border-collapse mb-10">
+             <table className="w-full text-[7px] border-collapse mb-10">
                <thead>
                  <tr className="border-b-2 border-slate-900 bg-slate-100">
                    <th className="py-2 px-1 text-left uppercase font-bold">Data/Hora</th>
@@ -564,7 +564,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
                </tbody>
              </table>
            ) : (
-             <table className="w-full text-[9px] border-collapse mb-10">
+             <table className="w-full text-[7px] border-collapse mb-10">
                <thead>
                  <tr className="border-b-2 border-slate-900 bg-slate-100">
                    <th className="py-2 px-1 text-left uppercase font-bold">Data/Hora</th>

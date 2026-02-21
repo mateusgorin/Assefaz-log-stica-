@@ -69,24 +69,24 @@ const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock }) 
               <div className={`w-12 h-12 ${theme.accent} text-white rounded-full flex items-center justify-center mx-auto mb-4`}>
                 <Edit2 className="w-6 h-6" />
               </div>
-              <h3 className="text-[18px] font-semibold text-slate-800 uppercase tracking-tighter mb-1">Ajustar Inventário</h3>
-              <p className="text-[13px] text-slate-400 font-normal uppercase tracking-widest leading-tight">
+              <h3 className="text-[16px] font-semibold text-slate-800 uppercase tracking-tighter mb-1">Ajustar Inventário</h3>
+              <p className="text-[11px] text-slate-400 font-normal uppercase tracking-widest leading-tight">
                 {editingProduct.name}
               </p>
             </div>
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <label className="text-[13px] font-semibold text-slate-500 uppercase tracking-widest">Novo Saldo em Estoque</label>
+                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">Novo Saldo em Estoque</label>
                 <div className="relative">
                   <input 
                     type="number" 
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
                     autoFocus
-                    className={`w-full bg-slate-50 border border-slate-200 px-4 py-4 text-center text-[28px] font-bold tracking-tighter outline-none ${theme.primaryFocus} transition-all`}
+                    className={`w-full bg-slate-50 border border-slate-200 px-4 py-4 text-center text-[26px] font-bold tracking-tighter outline-none ${theme.primaryFocus} transition-all`}
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-slate-400 uppercase">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-slate-400 uppercase">
                     {editingProduct.unit}
                   </span>
                 </div>
@@ -96,14 +96,14 @@ const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock }) 
                 <button 
                   onClick={() => setEditingProduct(null)}
                   disabled={isSaving}
-                  className="py-3 bg-slate-100 text-slate-600 text-[14px] font-semibold uppercase tracking-widest hover:bg-slate-200 transition-colors disabled:opacity-50"
+                  className="py-3 bg-slate-100 text-slate-600 text-[12px] font-semibold uppercase tracking-widest hover:bg-slate-200 transition-colors disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button 
                   onClick={handleSaveEdit}
                   disabled={isSaving}
-                  className={`py-3 ${theme.accent} text-white text-[14px] font-semibold uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50`}
+                  className={`py-3 ${theme.accent} text-white text-[12px] font-semibold uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-50`}
                 >
                   {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
                   Confirmar
@@ -116,8 +116,8 @@ const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock }) 
 
       <header className="border-b border-slate-200 pb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-[22px] font-semibold text-[#14213D] uppercase tracking-tighter">Estoque de Insumos</h1>
-          <p className="text-[14px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-normal">Controle de Saldo e Disponibilidade</p>
+          <h1 className="text-[20px] font-semibold text-[#14213D] uppercase tracking-tighter">Estoque de Insumos</h1>
+          <p className="text-[12px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-normal">Controle de Saldo e Disponibilidade</p>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -128,7 +128,7 @@ const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock }) 
               placeholder="PESQUISAR ITEM..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`pl-9 pr-4 py-2.5 bg-white border border-slate-200 text-[14px] uppercase font-normal tracking-[0.2em] outline-none ${theme.primaryFocus} w-full sm:w-64 shadow-sm`}
+              className={`pl-9 pr-4 py-2.5 bg-white border border-slate-200 text-[12px] uppercase font-normal tracking-[0.2em] outline-none ${theme.primaryFocus} w-full sm:w-64 shadow-sm`}
             />
           </div>
           <div className="relative">
@@ -136,7 +136,7 @@ const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock }) 
             <select 
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className={`pl-9 pr-8 py-2.5 bg-white border border-slate-200 text-[14px] uppercase font-normal tracking-[0.2em] outline-none ${theme.primaryFocus} w-full appearance-none shadow-sm`}
+              className={`pl-9 pr-8 py-2.5 bg-white border border-slate-200 text-[12px] uppercase font-normal tracking-[0.2em] outline-none ${theme.primaryFocus} w-full appearance-none shadow-sm`}
             >
               {categories.map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
@@ -152,29 +152,29 @@ const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock }) 
           filteredProducts.map((p) => (
             <div key={p.id} className="bg-white border border-slate-200 p-5 shadow-sm relative group overflow-hidden transition-all hover:border-slate-300">
               <div className="flex justify-between items-start mb-4">
-                <span className="text-[13px] font-semibold uppercase tracking-widest bg-slate-100 text-slate-400 px-2 py-0.5">
+                <span className="text-[11px] font-semibold uppercase tracking-widest bg-slate-100 text-slate-400 px-2 py-0.5">
                   {p.category}
                 </span>
                 {p.stock <= 5 && (
                   <div className="flex items-center gap-1 text-red-500 animate-pulse">
                     <AlertCircle className="w-3 h-3" />
-                    <span className="text-[13px] font-semibold uppercase tracking-tighter">Baixo Estoque</span>
+                    <span className="text-[11px] font-semibold uppercase tracking-tighter">Baixo Estoque</span>
                   </div>
                 )}
               </div>
               
-              <h3 className="text-[14px] font-semibold text-slate-800 uppercase leading-tight mb-6 h-8 line-clamp-2">
+              <h3 className="text-[12px] font-semibold text-slate-800 uppercase leading-tight mb-6 h-8 line-clamp-2">
                 {p.name}
               </h3>
 
               <div className="flex items-end justify-between border-t border-slate-50 pt-4">
                 <div>
-                  <p className="text-[13px] font-semibold text-slate-400 uppercase tracking-widest mb-1">Saldo Atual</p>
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-1">Saldo Atual</p>
                   <div className="flex items-baseline gap-1">
-                    <span className={`text-[28px] font-bold tracking-tighter ${p.stock <= 5 ? 'text-red-500' : 'text-[#14213D]'}`}>
+                    <span className={`text-[26px] font-bold tracking-tighter ${p.stock <= 5 ? 'text-red-500' : 'text-[#14213D]'}`}>
                       {p.stock}
                     </span>
-                    <span className="text-[13px] font-semibold text-slate-400 uppercase">{p.unit}</span>
+                    <span className="text-[11px] font-semibold text-slate-400 uppercase">{p.unit}</span>
                   </div>
                 </div>
                 
@@ -204,7 +204,7 @@ const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock }) 
         ) : (
           <div className="col-span-full py-20 bg-white border border-slate-200 border-dashed flex flex-col items-center justify-center text-center">
             <Boxes className="w-12 h-12 text-slate-200 mb-4" />
-            <p className="text-[14px] uppercase font-normal tracking-[0.3em] text-slate-300">Nenhum item localizado com esses filtros</p>
+            <p className="text-[12px] uppercase font-normal tracking-[0.3em] text-slate-300">Nenhum item localizado com esses filtros</p>
           </div>
         )}
       </div>
@@ -213,14 +213,14 @@ const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock }) 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className={`w-3 h-3 ${theme.accent}`}></div>
-            <span className="text-[13px] font-semibold uppercase tracking-widest text-slate-500">Estoque Regular</span>
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Estoque Regular</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-red-500"></div>
-            <span className="text-[13px] font-semibold uppercase tracking-widest text-slate-500">Estoque Crítico (≤ 5)</span>
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Estoque Crítico (≤ 5)</span>
           </div>
         </div>
-        <p className="text-[13px] font-semibold text-slate-400 uppercase tracking-widest">Total de Itens: {filteredProducts.length}</p>
+        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Total de Itens: {filteredProducts.length}</p>
       </div>
     </div>
   );

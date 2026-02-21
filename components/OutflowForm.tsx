@@ -108,7 +108,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
   };
 
   const getInputClass = (isError: boolean) => `
-    w-full rounded-none px-4 py-3.5 text-[14px] font-normal focus:ring-0 outline-none transition-all placeholder:text-slate-400
+    w-full rounded-none px-4 py-3.5 text-[12px] font-normal focus:ring-0 outline-none transition-all placeholder:text-slate-400
     ${isError 
       ? 'bg-red-50 border-red-500 text-red-900' 
       : `bg-[#F8FAFC] border-slate-200 text-slate-700 ${theme.primaryFocus}`
@@ -116,15 +116,15 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
     border
   `;
 
-  const labelClass = "text-[13px] font-semibold uppercase tracking-widest mb-2 flex items-center gap-2 transition-colors";
+  const labelClass = "text-[11px] font-semibold uppercase tracking-widest mb-2 flex items-center gap-2 transition-colors";
 
   const getProduct = (id: string) => products.find(p => p.id === id);
 
   return (
     <div className="space-y-6 sm:space-y-10 animate-in fade-in duration-500">
       <header className="border-b border-slate-200 pb-6">
-        <h1 className="text-[22px] font-semibold text-[#14213D] uppercase tracking-tighter">Requisição de Material</h1>
-        <p className="text-[14px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-normal">Registro de Saída Múltipla — {unit.toUpperCase()}</p>
+        <h1 className="text-[20px] font-semibold text-[#14213D] uppercase tracking-tighter">Requisição de Material</h1>
+        <p className="text-[12px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-normal">Registro de Saída Múltipla — {unit.toUpperCase()}</p>
       </header>
 
       <div className="max-w-5xl mx-auto space-y-12">
@@ -132,7 +132,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center gap-2 mb-2">
               <ArrowUpCircle className="w-4 h-4 text-slate-700" />
-              <h2 className="text-[18px] font-semibold uppercase tracking-widest text-slate-700">Montar Lote de Saída</h2>
+              <h2 className="text-[16px] font-semibold uppercase tracking-widest text-slate-700">Montar Lote de Saída</h2>
             </div>
             
             <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
@@ -171,7 +171,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
                 <button 
                   type="button"
                   onClick={handleAddItem}
-                  className="bg-slate-800 text-white py-3.5 px-4 flex items-center justify-center gap-2 text-[14px] font-semibold uppercase tracking-widest hover:bg-black transition-all"
+                  className="bg-slate-800 text-white py-3.5 px-4 flex items-center justify-center gap-2 text-[12px] font-semibold uppercase tracking-widest hover:bg-black transition-all"
                 >
                   <Plus className="w-4 h-4" /> Adicionar
                 </button>
@@ -181,21 +181,21 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
               <div className="border border-slate-100">
                 <div className="bg-slate-50 px-4 py-2 border-b border-slate-100 flex items-center gap-2">
                   <ListChecks className="w-3 h-3 text-slate-400" />
-                  <span className="text-[13px] font-semibold text-slate-400 uppercase tracking-widest">Itens no Lote de Saída</span>
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Itens no Lote de Saída</span>
                 </div>
                 <div className="min-h-[150px] max-h-[300px] overflow-y-auto custom-scrollbar">
                   {batchItems.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center p-8 text-center opacity-30">
                       <ShoppingCart className="w-8 h-8 mb-2" />
-                      <p className="text-[14px] uppercase font-semibold tracking-widest">Lote Vazio</p>
+                      <p className="text-[12px] uppercase font-semibold tracking-widest">Lote Vazio</p>
                     </div>
                   ) : (
                     <table className="w-full text-left border-collapse">
                       <tbody className="divide-y divide-slate-50">
                         {batchItems.map((item, idx) => (
                           <tr key={idx} className="hover:bg-slate-50/50">
-                            <td className="px-4 py-3 text-[14px] font-semibold text-slate-700 uppercase">{getProduct(item.productId)?.name}</td>
-                            <td className="px-4 py-3 text-[14px] font-bold text-slate-900 text-right">{item.quantity} {getProduct(item.productId)?.unit}</td>
+                            <td className="px-4 py-3 text-[12px] font-semibold text-slate-700 uppercase">{getProduct(item.productId)?.name}</td>
+                            <td className="px-4 py-3 text-[12px] font-bold text-slate-900 text-right">{item.quantity} {getProduct(item.productId)?.unit}</td>
                             <td className="px-4 py-3 text-right w-10">
                               <button onClick={() => handleRemoveItem(idx)} className="text-slate-300 hover:text-red-500 p-1">
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -214,14 +214,14 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
           <div className="space-y-6">
             <div className="flex items-center gap-2 mb-2">
               <FileText className="w-4 h-4 text-slate-700" />
-              <h2 className="text-[18px] font-semibold uppercase tracking-widest text-slate-700">Finalizar Requisição</h2>
+              <h2 className="text-[16px] font-semibold uppercase tracking-widest text-slate-700">Finalizar Requisição</h2>
             </div>
             
             <form onSubmit={handleSubmit} className="bg-white border border-slate-200 p-6 shadow-sm space-y-6 relative overflow-hidden">
               {success && (
                 <div className="absolute inset-0 bg-white/95 z-20 flex flex-col items-center justify-center text-center p-6 animate-in fade-in duration-300">
                   <CheckCircle2 className="w-10 h-10 text-green-600 mb-4" />
-                  <h2 className="text-[14px] font-semibold text-slate-800 uppercase tracking-tighter">Saída Registrada</h2>
+                  <h2 className="text-[12px] font-semibold text-slate-800 uppercase tracking-tighter">Saída Registrada</h2>
                 </div>
               )}
 
@@ -288,7 +288,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
                 </div>
               </div>
 
-              <button type="submit" disabled={loading || success || batchItems.length === 0} className={`w-full py-4 text-white font-semibold uppercase tracking-[0.2em] text-[14px] transition-all flex items-center justify-center gap-3 shadow-lg ${loading || batchItems.length === 0 ? 'bg-slate-400' : theme.primaryButton}`}>
+              <button type="submit" disabled={loading || success || batchItems.length === 0} className={`w-full py-4 text-white font-semibold uppercase tracking-[0.2em] text-[12px] transition-all flex items-center justify-center gap-3 shadow-lg ${loading || batchItems.length === 0 ? 'bg-slate-400' : theme.primaryButton}`}>
                 {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Gravando...</> : <><FileText className="w-4 h-4" /> Confirmar Saída</>}
               </button>
             </form>

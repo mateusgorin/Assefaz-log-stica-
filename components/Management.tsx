@@ -37,8 +37,8 @@ const Management: React.FC<ManagementProps> = ({
   return (
     <div className="space-y-10 pb-20">
       <header className="border-b border-slate-200 pb-6">
-        <h1 className="text-[22px] font-semibold text-[#14213D] uppercase tracking-tighter">Gerenciamento Técnico</h1>
-        <p className="text-[14px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-normal">Configurações de Itens, Setores e Equipe de Suporte</p>
+        <h1 className="text-[20px] font-semibold text-[#14213D] uppercase tracking-tighter">Gerenciamento Técnico</h1>
+        <p className="text-[12px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-normal">Configurações de Itens, Setores e Equipe de Suporte</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -46,7 +46,7 @@ const Management: React.FC<ManagementProps> = ({
         <div className="bg-white border border-slate-200 shadow-sm flex flex-col">
           <div className="p-6 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
             <Tag className={`w-3 h-3 ${theme.primaryText}`} />
-            <h2 className="text-[14px] font-semibold uppercase tracking-widest text-slate-600">Catálogo de Insumos</h2>
+            <h2 className="text-[12px] font-semibold uppercase tracking-widest text-slate-600">Catálogo de Insumos</h2>
           </div>
           <div className="p-6 space-y-4 border-b border-slate-100">
             <input 
@@ -74,8 +74,8 @@ const Management: React.FC<ManagementProps> = ({
             {products.sort((a,b) => a.name.localeCompare(b.name)).map(p => (
               <div key={p.id} className="px-6 py-3 flex justify-between items-center border-b border-slate-50 hover:bg-slate-50 transition-colors">
                 <div>
-                  <p className="text-[14px] font-semibold text-slate-700 uppercase">{p.name}</p>
-                  <p className="text-[13px] text-slate-400 uppercase tracking-widest">{p.category} | {p.unit}</p>
+                  <p className="text-[12px] font-semibold text-slate-700 uppercase">{p.name}</p>
+                  <p className="text-[11px] text-slate-400 uppercase tracking-widest">{p.category} | {p.unit}</p>
                 </div>
                 <button onClick={() => onDeleteProduct(p.id)} className="text-slate-300 hover:text-red-500 transition-colors p-2">
                   <Trash2 className="w-3.5 h-3.5" />
@@ -89,7 +89,7 @@ const Management: React.FC<ManagementProps> = ({
         <div className="bg-white border border-slate-200 shadow-sm flex flex-col">
           <div className="p-6 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
             <Briefcase className={`w-3 h-3 ${theme.primaryText}`} />
-            <h2 className="text-[14px] font-semibold uppercase tracking-widest text-slate-600">Cadastro de Setores</h2>
+            <h2 className="text-[12px] font-semibold uppercase tracking-widest text-slate-600">Cadastro de Setores</h2>
           </div>
           <div className="p-6 space-y-4 border-b border-slate-100">
             <input 
@@ -109,7 +109,7 @@ const Management: React.FC<ManagementProps> = ({
             {sectors.sort((a,b) => a.name.localeCompare(b.name)).map(s => (
               <div key={s.id} className="px-6 py-3 flex justify-between items-center border-b border-slate-50 hover:bg-slate-50 transition-colors">
                 <div>
-                  <p className="text-[14px] font-semibold text-slate-700 uppercase">{s.name}</p>
+                  <p className="text-[12px] font-semibold text-slate-700 uppercase">{s.name}</p>
                 </div>
                 <button onClick={() => onDeleteSector(s.id)} className="text-slate-300 hover:text-red-500 transition-colors p-2">
                   <Trash2 className="w-3.5 h-3.5" />
@@ -123,11 +123,11 @@ const Management: React.FC<ManagementProps> = ({
         <div className="bg-white border border-slate-200 lg:col-span-2 shadow-sm">
           <div className="p-6 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
             <UserCheck className={`w-3 h-3 ${theme.primaryText}`} />
-            <h2 className="text-[14px] font-semibold uppercase tracking-widest text-slate-600">Equipe de Suprimentos (Operadores)</h2>
+            <h2 className="text-[12px] font-semibold uppercase tracking-widest text-slate-600">Equipe de Suprimentos (Operadores)</h2>
           </div>
           <div className="p-6 sm:p-8 flex flex-col sm:flex-row gap-4 border-b border-slate-50 items-end">
             <div className="flex-1 w-full space-y-1">
-              <label className="text-[13px] font-semibold text-slate-400 uppercase tracking-widest ml-1">Nome do Operador</label>
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest ml-1">Nome do Operador</label>
               <input 
                 value={staffName} 
                 onChange={(e) => setStaffName(e.target.value)} 
@@ -146,13 +146,13 @@ const Management: React.FC<ManagementProps> = ({
             <div className="flex flex-wrap gap-2">
               {stockStaff.length > 0 ? stockStaff.map(s => (
                 <div key={s.id} className="bg-slate-50 border border-slate-200 px-4 py-2 flex items-center gap-4 group">
-                  <span className="text-[14px] font-semibold text-slate-600 uppercase">{s.name}</span>
+                  <span className="text-[12px] font-semibold text-slate-600 uppercase">{s.name}</span>
                   <button onClick={() => onDeleteStaff(s.id)} className="text-slate-300 hover:text-red-500 transition-colors">
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
               )) : (
-                <p className="text-[14px] text-slate-400 uppercase font-normal italic">Nenhum operador cadastrado.</p>
+                <p className="text-[12px] text-slate-400 uppercase font-normal italic">Nenhum operador cadastrado.</p>
               )}
             </div>
           </div>

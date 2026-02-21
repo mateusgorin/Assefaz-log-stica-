@@ -104,13 +104,13 @@ const SignaturePad: React.FC<SignaturePadProps> = ({ label, onSave, onClear, col
   return (
     <div className="flex flex-col space-y-3 w-full">
       <div className="flex justify-between items-center">
-        <label className={`text-[10px] font-bold uppercase tracking-widest ${error ? 'text-red-600' : 'text-slate-500'}`}>
+        <label className={`text-[8px] font-bold uppercase tracking-widest ${error ? 'text-red-600' : 'text-slate-500'}`}>
           {label}
         </label>
         <button 
           type="button" 
           onClick={clear}
-          className={`text-[10px] uppercase font-bold ${colorClass} hover:underline px-2 py-1`}
+          className={`text-[8px] uppercase font-bold ${colorClass} hover:underline px-2 py-1`}
         >
           Limpar
         </button>
@@ -131,7 +131,7 @@ const SignaturePad: React.FC<SignaturePadProps> = ({ label, onSave, onClear, col
           className="w-full h-[140px] cursor-crosshair touch-none"
         />
       </div>
-      <p className={`text-[9px] uppercase tracking-tighter ${error ? 'text-red-500 font-bold' : 'text-slate-400'}`}>
+      <p className={`text-[7px] uppercase tracking-tighter ${error ? 'text-red-500 font-bold' : 'text-slate-400'}`}>
         {error ? 'Assinatura obrigatória para validação' : 'Campo de assinatura eletrônica do sistema'}
       </p>
     </div>

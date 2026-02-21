@@ -189,8 +189,8 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
     <div className={`bg-white border ${theme.border} p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group`}>
       <div className="flex justify-between items-start mb-4">
         <div>
-          <p className="text-[13px] font-semibold text-slate-400 uppercase tracking-widest mb-1">{title}</p>
-          <h3 className={`text-[32px] font-bold ${theme.text} tracking-tighter`}>{value}</h3>
+          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-1">{title}</p>
+          <h3 className={`text-[30px] font-bold ${theme.text} tracking-tighter`}>{value}</h3>
         </div>
         <div className={`p-3 ${theme.bgLight} ${theme.text}`}>
           <Icon className="w-5 h-5" />
@@ -198,12 +198,12 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
       </div>
       <div className="flex items-center gap-2 mt-2">
         {trend && (
-          <span className={`flex items-center text-[13px] font-semibold uppercase px-2 py-0.5 ${trend === 'up' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+          <span className={`flex items-center text-[11px] font-semibold uppercase px-2 py-0.5 ${trend === 'up' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
             {trend === 'up' ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
             {sub}
           </span>
         )}
-        {!trend && <span className="text-[13px] text-slate-400 uppercase font-normal tracking-tight">{sub}</span>}
+        {!trend && <span className="text-[11px] text-slate-400 uppercase font-normal tracking-tight">{sub}</span>}
       </div>
     </div>
   );
@@ -213,12 +213,12 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
       {/* BOTÃO DE FILTROS (MOBILE) */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-[22px] font-semibold text-[#14213D] uppercase tracking-tighter">Dashboard Gerencial</h1>
-          <p className="text-[14px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-normal">Análise de Performance e Consumo</p>
+          <h1 className="text-[20px] font-semibold text-[#14213D] uppercase tracking-tighter">Dashboard Gerencial</h1>
+          <p className="text-[12px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-normal">Análise de Performance e Consumo</p>
         </div>
         <button 
           onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center gap-2 px-4 py-2.5 border ${theme.border} ${showFilters ? theme.bgLight + ' ' + theme.text : 'bg-white text-slate-500'} text-[14px] font-semibold uppercase tracking-widest transition-all shadow-sm hover:bg-slate-50`}
+          className={`flex items-center gap-2 px-4 py-2.5 border ${theme.border} ${showFilters ? theme.bgLight + ' ' + theme.text : 'bg-white text-slate-500'} text-[12px] font-semibold uppercase tracking-widest transition-all shadow-sm hover:bg-slate-50`}
         >
           <Filter className="w-3.5 h-3.5" />
           {showFilters ? 'Ocultar Filtros' : 'Filtrar Dados'}
@@ -230,12 +230,12 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
       {showFilters && (
         <section className="bg-white border border-slate-200 p-4 sm:p-6 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in slide-in-from-top-4 duration-300">
           <div className="space-y-1">
-            <label className="text-[13px] font-semibold text-slate-400 uppercase tracking-widest ml-1">Período (Mês)</label>
+            <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest ml-1">Período (Mês)</label>
             <div className="relative">
               <select 
                 value={filterMonth} 
                 onChange={(e) => setFilterMonth(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-                className={`w-full appearance-none bg-slate-50 border border-slate-100 px-4 py-2.5 text-[14px] font-normal uppercase outline-none focus:border-slate-300 transition-all`}
+                className={`w-full appearance-none bg-slate-50 border border-slate-100 px-4 py-2.5 text-[12px] font-normal uppercase outline-none focus:border-slate-300 transition-all`}
               >
                 <option value="all">TODOS OS MESES</option>
                 {months.map(m => <option key={m.v} value={m.v}>{m.l.toUpperCase()}</option>)}
@@ -245,12 +245,12 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
           </div>
 
           <div className="space-y-1">
-            <label className="text-[13px] font-semibold text-slate-400 uppercase tracking-widest ml-1">Ano Base</label>
+            <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest ml-1">Ano Base</label>
             <div className="relative">
               <select 
                 value={filterYear} 
                 onChange={(e) => setFilterYear(Number(e.target.value))}
-                className="w-full appearance-none bg-slate-50 border border-slate-100 px-4 py-2.5 text-[14px] font-normal uppercase outline-none focus:border-slate-300 transition-all"
+                className="w-full appearance-none bg-slate-50 border border-slate-100 px-4 py-2.5 text-[12px] font-normal uppercase outline-none focus:border-slate-300 transition-all"
               >
                 {[2026, 2027, 2028, 2029, 2030].map(y => <option key={y} value={y}>{y}</option>)}
               </select>
@@ -259,12 +259,12 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
           </div>
 
           <div className="space-y-1">
-            <label className="text-[13px] font-semibold text-slate-400 uppercase tracking-widest ml-1">Setor</label>
+            <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest ml-1">Setor</label>
             <div className="relative">
               <select 
                 value={filterSector} 
                 onChange={(e) => setFilterSector(e.target.value)}
-                className="w-full appearance-none bg-slate-50 border border-slate-100 px-4 py-2.5 text-[14px] font-normal uppercase outline-none focus:border-slate-300 transition-all"
+                className="w-full appearance-none bg-slate-50 border border-slate-100 px-4 py-2.5 text-[12px] font-normal uppercase outline-none focus:border-slate-300 transition-all"
               >
                 <option value="all">TODOS</option>
                 {sectors.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
@@ -274,12 +274,12 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
           </div>
 
           <div className="space-y-1">
-            <label className="text-[13px] font-semibold text-slate-400 uppercase tracking-widest ml-1">Material</label>
+            <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest ml-1">Material</label>
             <div className="relative">
               <select 
                 value={filterProduct} 
                 onChange={(e) => setFilterProduct(e.target.value)}
-                className="w-full appearance-none bg-slate-50 border border-slate-100 px-4 py-2.5 text-[14px] font-normal uppercase outline-none focus:border-slate-300 transition-all"
+                className="w-full appearance-none bg-slate-50 border border-slate-100 px-4 py-2.5 text-[12px] font-normal uppercase outline-none focus:border-slate-300 transition-all"
               >
                 <option value="all">TODOS OS ITENS</option>
                 {products.map(p => <option key={p.id} value={p.id}>{p.name.toUpperCase()}</option>)}
@@ -324,7 +324,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
         {/* Ranking de Setores */}
         <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-sm">
           <div className="flex justify-between items-center mb-10 border-b border-slate-50 pb-4">
-            <h3 className="text-[14px] font-semibold uppercase tracking-[0.2em] text-slate-400">Ranking: Setores do Mês</h3>
+            <h3 className="text-[12px] font-semibold uppercase tracking-[0.2em] text-slate-400">Ranking: Setores do Mês</h3>
             <Award className={`w-4 h-4 ${theme.text}`} />
           </div>
           <div className="h-72">
@@ -343,7 +343,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
         {/* Ranking de Materiais */}
         <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-sm">
           <div className="flex justify-between items-center mb-10 border-b border-slate-50 pb-4">
-            <h3 className="text-[14px] font-semibold uppercase tracking-[0.2em] text-slate-400">Ranking: Materiais mais Retirados</h3>
+            <h3 className="text-[12px] font-semibold uppercase tracking-[0.2em] text-slate-400">Ranking: Materiais mais Retirados</h3>
             <Package className={`w-4 h-4 ${theme.text}`} />
           </div>
           <div className="h-80">
@@ -353,7 +353,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
                   {productRanking.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                 </Pie>
                 <Tooltip contentStyle={{fontSize: '12px', borderRadius: '0'}} />
-                <Legend layout="horizontal" align="center" verticalAlign="bottom" iconType="circle" wrapperStyle={{ paddingTop: '10px', bottom: 0 }} formatter={(value, entry: any) => <span className="text-[13px] uppercase font-normal text-slate-500">{value} ({entry.payload.percent}%)</span>} />
+                <Legend layout="horizontal" align="center" verticalAlign="bottom" iconType="circle" wrapperStyle={{ paddingTop: '10px', bottom: 0 }} formatter={(value, entry: any) => <span className="text-[11px] uppercase font-normal text-slate-500">{value} ({entry.payload.percent}%)</span>} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -362,7 +362,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
         {/* Evolução Mensal */}
         <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-sm lg:col-span-2">
           <div className="flex justify-between items-center mb-10 border-b border-slate-50 pb-4">
-            <h3 className="text-[14px] font-semibold uppercase tracking-[0.2em] text-slate-400">Evolução de Consumo Mensal — {filterYear}</h3>
+            <h3 className="text-[12px] font-semibold uppercase tracking-[0.2em] text-slate-400">Evolução de Consumo Mensal — {filterYear}</h3>
             <Calendar className={`w-4 h-4 ${theme.text}`} />
           </div>
           <div className="h-72">
@@ -390,32 +390,32 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
         <div className="lg:col-span-2 bg-white border border-slate-200 p-6 sm:p-10 shadow-sm">
           <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-6">
             <TrendingUp className={`w-5 h-5 ${theme.text}`} />
-            <h2 className="text-[18px] font-semibold uppercase tracking-widest text-slate-800">Insights de Consumo por Setor (vs Mês Anterior)</h2>
+            <h2 className="text-[16px] font-semibold uppercase tracking-widest text-slate-800">Insights de Consumo por Setor (vs Mês Anterior)</h2>
           </div>
           
           {filterMonth === 'all' ? (
-            <div className="py-10 text-center text-[14px] uppercase font-normal text-slate-300">Selecione um mês específico para ver os insights comparativos</div>
+            <div className="py-10 text-center text-[12px] uppercase font-normal text-slate-300">Selecione um mês específico para ver os insights comparativos</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {sectorInsights.length > 0 ? (
                 sectorInsights.map((item, idx) => (
                   <div key={idx} className="bg-slate-50 p-4 border border-slate-100 flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[14px] font-semibold text-slate-700 uppercase truncate pr-2">{item.name}</span>
-                      <div className={`flex items-center text-[13px] font-semibold px-1.5 py-0.5 rounded ${item.trend === 'up' ? 'bg-red-100 text-red-600' : item.trend === 'down' ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-500'}`}>
+                      <span className="text-[12px] font-semibold text-slate-700 uppercase truncate pr-2">{item.name}</span>
+                      <div className={`flex items-center text-[11px] font-semibold px-1.5 py-0.5 rounded ${item.trend === 'up' ? 'bg-red-100 text-red-600' : item.trend === 'down' ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-500'}`}>
                         {item.trend === 'up' ? <ArrowUpRight className="w-2.5 h-2.5 mr-0.5" /> : item.trend === 'down' ? <ArrowDownRight className="w-2.5 h-2.5 mr-0.5" /> : null}
                         {item.percent}%
                       </div>
                     </div>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-[32px] font-bold text-slate-800 tracking-tighter">{item.current}</span>
-                      <span className="text-[13px] font-normal text-slate-400 uppercase tracking-widest">Itens este mês</span>
+                      <span className="text-[30px] font-bold text-slate-800 tracking-tighter">{item.current}</span>
+                      <span className="text-[11px] font-normal text-slate-400 uppercase tracking-widest">Itens este mês</span>
                     </div>
-                    <p className="text-[13px] text-slate-400 uppercase font-normal mt-1">Mês anterior: {item.prev} itens</p>
+                    <p className="text-[11px] text-slate-400 uppercase font-normal mt-1">Mês anterior: {item.prev} itens</p>
                   </div>
                 ))
               ) : (
-                <div className="col-span-2 py-10 text-center text-[14px] uppercase font-normal text-slate-300">Sem dados suficientes para comparação</div>
+                <div className="col-span-2 py-10 text-center text-[12px] uppercase font-normal text-slate-300">Sem dados suficientes para comparação</div>
               )}
             </div>
           )}
@@ -424,22 +424,22 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
         <div className="bg-white border border-slate-200 p-6 sm:p-10 shadow-sm">
           <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-6">
             <Award className={`w-5 h-5 ${theme.text}`} />
-            <h2 className="text-[18px] font-semibold uppercase tracking-widest text-slate-800">Ranking Geral</h2>
+            <h2 className="text-[16px] font-semibold uppercase tracking-widest text-slate-800">Ranking Geral</h2>
           </div>
           <div className="space-y-4">
             {accumulatedRanking.map((item, idx) => (
               <div key={idx} className="flex items-center justify-between group">
                 <div className="flex items-center gap-4">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[14px] font-semibold ${idx === 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>{idx + 1}</span>
-                  <span className="text-[14px] font-semibold text-slate-700 uppercase group-hover:text-slate-900 transition-colors">{item.name}</span>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-semibold ${idx === 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>{idx + 1}</span>
+                  <span className="text-[12px] font-semibold text-slate-700 uppercase group-hover:text-slate-900 transition-colors">{item.name}</span>
                 </div>
-                <span className="text-[14px] font-bold text-slate-400">{item.total} ITENS</span>
+                <span className="text-[12px] font-bold text-slate-400">{item.total} ITENS</span>
               </div>
             ))}
           </div>
           <div className="mt-8 pt-6 border-t border-slate-50">
-            <h4 className="text-[14px] font-semibold text-slate-400 uppercase tracking-widest mb-3">Destaque Histórico</h4>
-            <p className="text-[13px] text-slate-500 leading-relaxed uppercase font-normal">
+            <h4 className="text-[12px] font-semibold text-slate-400 uppercase tracking-widest mb-3">Destaque Histórico</h4>
+            <p className="text-[11px] text-slate-500 leading-relaxed uppercase font-normal">
               O setor <strong className={theme.text}>{accumulatedRanking[0]?.name}</strong> lidera o consumo histórico com <strong className={theme.text}>{accumulatedRanking[0]?.total}</strong> itens.
             </p>
           </div>
