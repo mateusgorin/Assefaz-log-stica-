@@ -94,8 +94,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
         name: sectors.find(s => s.id === id)?.name.toUpperCase() || 'OUTRO',
         total: qty
       }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
+      .sort((a, b) => b.total - a.total);
   }, [filteredData, sectors]);
 
   const productRanking = useMemo(() => {
@@ -114,7 +113,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
         };
       })
       .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
+      .slice(0, 10);
   }, [filteredData, products]);
 
   const categoryDistribution = useMemo(() => {
@@ -162,8 +161,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
         name: sectors.find(s => s.id === id)?.name.toUpperCase() || 'OUTRO',
         total: qty
       }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
+      .sort((a, b) => b.total - a.total);
   }, [movements, sectors]);
 
   const sectorInsights = useMemo(() => {
@@ -200,8 +198,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
           trend: diff > 0 ? 'up' : diff < 0 ? 'down' : 'stable'
         };
       })
-      .sort((a, b) => b.current - a.current)
-      .slice(0, 5);
+      .sort((a, b) => b.current - a.current);
   }, [filteredData, movements, filterMonth, filterYear, sectors]);
 
   // Componentes Internos
@@ -347,16 +344,18 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
             <h3 className="text-[12px] font-semibold uppercase tracking-[0.2em] text-slate-400">Ranking: Setores do Mês</h3>
             <Award className={`w-4 h-4 ${theme.text}`} />
           </div>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart layout="vertical" data={sectorRanking} margin={{ left: 40, right: 50, top: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" width={110} fontSize={12} tick={{fill: '#64748b', fontWeight: 'normal'}} axisLine={false} tickLine={false} />
-                <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{fontSize: '12px', borderRadius: '0', border: '1px solid #e2e8f0'}} />
-                <Bar dataKey="total" fill={theme.primary} radius={[0, 4, 4, 0]} barSize={20} label={{ position: 'right', fontSize: 12, fill: '#64748b', fontWeight: 'normal', offset: 10 }} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="h-96 overflow-y-auto custom-scrollbar pr-2">
+            <div style={{ height: Math.max(300, sectorRanking.length * 40) }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart layout="vertical" data={sectorRanking} margin={{ left: 40, right: 50, top: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="name" type="category" width={110} fontSize={12} tick={{fill: '#64748b', fontWeight: 'normal'}} axisLine={false} tickLine={false} />
+                  <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{fontSize: '12px', borderRadius: '0', border: '1px solid #e2e8f0'}} />
+                  <Bar dataKey="total" fill={theme.primary} radius={[0, 4, 4, 0]} barSize={20} label={{ position: 'right', fontSize: 12, fill: '#64748b', fontWeight: 'normal', offset: 10 }} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
@@ -366,7 +365,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
             <h3 className="text-[12px] font-semibold uppercase tracking-[0.2em] text-slate-400">Ranking: Materiais mais Retirados</h3>
             <Package className={`w-4 h-4 ${theme.text}`} />
           </div>
-          <div className="h-80">
+          <div className="h-96 overflow-y-auto custom-scrollbar pr-2">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={productRanking} cx="50%" cy="35%" innerRadius={45} outerRadius={70} paddingAngle={5} dataKey="value">
@@ -435,6 +434,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
           {filterMonth === 'all' ? (
             <div className="py-10 text-center text-[12px] uppercase font-normal text-slate-300">Selecione um mês específico para ver os insights comparativos</div>
           ) : (
+          <div className="max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {sectorInsights.length > 0 ? (
                 sectorInsights.map((item, idx) => (
@@ -450,13 +450,16 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
                       <span className="text-[30px] font-bold text-slate-800 tracking-tighter">{item.current}</span>
                       <span className="text-[11px] font-normal text-slate-400 uppercase tracking-widest">Itens este mês</span>
                     </div>
-                    <p className="text-[11px] text-slate-400 uppercase font-normal mt-1">Mês anterior: {item.prev} itens</p>
+                    <div className="flex justify-between items-center mt-1">
+                      <p className="text-[11px] text-slate-400 uppercase font-normal">Mês anterior: {item.prev} itens</p>
+                    </div>
                   </div>
                 ))
               ) : (
                 <div className="col-span-2 py-10 text-center text-[12px] uppercase font-normal text-slate-300">Sem dados suficientes para comparação</div>
               )}
             </div>
+          </div>
           )}
         </div>
 
@@ -465,7 +468,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
             <Award className={`w-5 h-5 ${theme.text}`} />
             <h2 className="text-[16px] font-semibold uppercase tracking-widest text-slate-800">Ranking Geral</h2>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
             {accumulatedRanking.map((item, idx) => (
               <div key={idx} className="flex items-center justify-between group">
                 <div className="flex items-center gap-4">

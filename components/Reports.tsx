@@ -70,14 +70,14 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
 
     const secRanking = Object.entries(secMap)
       .map(([id, qty]) => ({ name: sectors.find(s => s.id === id)?.name || id, total: qty }))
-      .sort((a, b) => b.total - a.total).slice(0, 5);
+      .sort((a, b) => b.total - a.total);
 
     const prodRanking = Object.entries(prodMap)
       .map(([id, qty]) => {
         const p = products.find(prod => prod.id === id);
         return { name: p?.name || id, value: qty, percent: totalQty > 0 ? ((qty / totalQty) * 100).toFixed(1) : "0" };
       })
-      .sort((a, b) => b.value - a.value).slice(0, 5);
+      .sort((a, b) => b.value - a.value).slice(0, 10);
 
     // Crescimento
     const prevMonth = selectedMonth === 1 ? 12 : selectedMonth - 1;
@@ -96,7 +96,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
     });
     const accRanking = Object.entries(accSecMap)
       .map(([id, qty]) => ({ name: sectors.find(s => s.id === id)?.name || id, total: qty }))
-      .sort((a, b) => b.total - a.total).slice(0, 5);
+      .sort((a, b) => b.total - a.total);
 
     return { totalQty, secRanking, prodRanking, growth, accRanking, prevTotal };
   }, [filteredMovements, movements, unit, selectedMonth, selectedYear, sectors, products]);
@@ -166,7 +166,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
         // Setores
         (doc as any).autoTable({
           startY: currentY + 5,
-          head: [['RANK', 'TOP 5 SETORES', 'QTD TOTAL']],
+          head: [['RANK', 'RANKING DE SETORES', 'QTD TOTAL']],
           body: stats.secRanking.map((c, i) => [i + 1, c.name.toUpperCase(), c.total]),
           headStyles: { fillColor: primaryColor, fontSize: 8 },
           columnStyles: { 0: { cellWidth: 15 }, 2: { cellWidth: 30, halign: 'right' } }
@@ -175,7 +175,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
         // Materiais
         (doc as any).autoTable({
           startY: (doc as any).lastAutoTable.finalY + 5,
-          head: [['RANK', 'TOP 5 MATERIAIS MAIS RETIRADOS', 'QTD', '% DO TOTAL']],
+          head: [['RANK', 'TOP 10 MATERIAIS MAIS RETIRADOS', 'QTD', '% DO TOTAL']],
           body: stats.prodRanking.map((p, i) => [i + 1, p.name.toUpperCase(), p.value, `${p.percent}%`]),
           headStyles: { fillColor: primaryColor, fontSize: 8 },
           columnStyles: { 0: { cellWidth: 15 }, 2: { cellWidth: 20 }, 3: { cellWidth: 30, halign: 'right' } }
