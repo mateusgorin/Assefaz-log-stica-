@@ -31,7 +31,6 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
   const [quantity, setQuantity] = useState<number | string>(1);
   const [sigWithdrawer, setSigWithdrawer] = useState('');
   const [sigDeliverer, setSigDeliverer] = useState('');
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   
   const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
@@ -84,6 +83,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
 
     setLoading(true);
 
+    // Pequeno delay para simular processamento e garantir que o toast apareça após a transição
     setTimeout(() => {
       onAddMovement({
         items: batchItems,
@@ -94,12 +94,8 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
       });
 
       setLoading(false);
-      setSuccess(true);
-
-      setTimeout(() => {
-        onNavigate(View.HISTORY);
-      }, 1500);
-    }, 800);
+      onNavigate(View.HISTORY);
+    }, 500);
   };
 
   const theme = {
@@ -219,13 +215,6 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
             </div>
             
             <form onSubmit={handleSubmit} className="bg-white border border-slate-200 p-6 shadow-sm space-y-6 relative overflow-hidden">
-              {success && (
-                <div className="absolute inset-0 bg-white/95 z-20 flex flex-col items-center justify-center text-center p-6 animate-in fade-in duration-300">
-                  <CheckCircle2 className="w-10 h-10 text-green-600 mb-4" />
-                  <h2 className="text-[12px] font-semibold text-slate-800 uppercase tracking-tighter">Saída Registrada</h2>
-                </div>
-              )}
-
               <div className="space-y-1">
                 <label className={`${labelClass} ${errors.sector ? 'text-red-600' : 'text-slate-500'}`}>Setor Solicitante</label>
                 <select 
@@ -289,7 +278,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
                 </div>
               </div>
 
-              <button type="submit" disabled={loading || success || batchItems.length === 0} className={`w-full py-4 text-white font-semibold uppercase tracking-[0.2em] text-[12px] transition-all flex items-center justify-center gap-3 shadow-lg ${loading || batchItems.length === 0 ? 'bg-slate-400' : theme.primaryButton}`}>
+              <button type="submit" disabled={loading || batchItems.length === 0} className={`w-full py-4 text-white font-semibold uppercase tracking-[0.2em] text-[12px] transition-all flex items-center justify-center gap-3 shadow-lg ${loading || batchItems.length === 0 ? 'bg-slate-400' : theme.primaryButton}`}>
                 {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Gravando...</> : <><FileText className="w-4 h-4" /> Confirmar Saída</>}
               </button>
             </form>

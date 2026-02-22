@@ -26,7 +26,6 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
   const [quantity, setQuantity] = useState<number | string>(1);
   const [unitPrice, setUnitPrice] = useState<number | string>('');
   const [signature, setSignature] = useState('');
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   
@@ -89,12 +88,8 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
         signature
       });
       setLoading(false);
-      setSuccess(true);
-      
-      setTimeout(() => {
-        onNavigate(View.HISTORY);
-      }, 1500);
-    }, 800);
+      onNavigate(View.HISTORY);
+    }, 500);
   };
 
   const theme = {
@@ -219,13 +214,6 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
             </div>
             
             <form onSubmit={handleSubmit} className="bg-white border border-slate-200 p-6 shadow-sm space-y-6 relative overflow-hidden">
-              {success && (
-                <div className="absolute inset-0 bg-white/95 z-20 flex flex-col items-center justify-center text-center p-6 animate-in fade-in duration-300">
-                  <CheckCircle2 className="w-10 h-10 text-emerald-600 mb-4" />
-                  <h2 className="text-[12px] font-semibold text-slate-800 uppercase tracking-tighter">Entrada Registrada</h2>
-                </div>
-              )}
-
               <div className="space-y-1">
                 <label className={labelClass(errors.staff)}>Operador Responsável</label>
                 <select value={staffId} onChange={(e) => setStaffId(e.target.value)} className={inputClass(errors.staff)} disabled={loading}>
@@ -247,7 +235,7 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
                 </div>
               </div>
 
-              <button type="submit" disabled={loading || success || batchItems.length === 0} className={`w-full py-4 text-white font-semibold uppercase tracking-[0.2em] text-[12px] transition-all flex items-center justify-center gap-3 shadow-lg ${loading || batchItems.length === 0 ? 'bg-slate-400' : theme.primaryButton}`}>
+              <button type="submit" disabled={loading || batchItems.length === 0} className={`w-full py-4 text-white font-semibold uppercase tracking-[0.2em] text-[12px] transition-all flex items-center justify-center gap-3 shadow-lg ${loading || batchItems.length === 0 ? 'bg-slate-400' : theme.primaryButton}`}>
                 {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Gravando...</> : <><PackagePlus className="w-4 h-4" /> Confirmar Lote</>}
               </button>
             </form>
