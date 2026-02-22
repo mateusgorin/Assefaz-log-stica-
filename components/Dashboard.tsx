@@ -117,6 +117,26 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
       .slice(0, 5);
   }, [filteredData, products]);
 
+  const categoryDistribution = useMemo(() => {
+    const map: Record<string, number> = {};
+    const totalQty = filteredData.reduce((acc, m) => acc + m.quantity, 0);
+    
+    filteredData.forEach(m => {
+      const p = products.find(prod => prod.id === m.productId);
+      if (p) {
+        map[p.category] = (map[p.category] || 0) + m.quantity;
+      }
+    });
+
+    return Object.entries(map)
+      .map(([name, value]) => ({
+        name: name.toUpperCase(),
+        value,
+        percent: totalQty > 0 ? ((value / totalQty) * 100).toFixed(1) : 0
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredData, products]);
+
   const evolutionData = useMemo(() => {
     const data = months.map(m => {
       const monthMovs = movements.filter(mov => {
@@ -320,7 +340,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
       </section>
 
       {/* GRÁFICOS PRINCIPAIS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Ranking de Setores */}
         <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-sm">
           <div className="flex justify-between items-center mb-10 border-b border-slate-50 pb-4">
@@ -359,8 +379,27 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
           </div>
         </div>
 
+        {/* Distribuição por Categoria */}
+        <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-sm">
+          <div className="flex justify-between items-center mb-10 border-b border-slate-50 pb-4">
+            <h3 className="text-[12px] font-semibold uppercase tracking-[0.2em] text-slate-400">Distribuição por Categoria</h3>
+            <Filter className={`w-4 h-4 ${theme.text}`} />
+          </div>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={categoryDistribution} cx="50%" cy="35%" innerRadius={0} outerRadius={70} paddingAngle={2} dataKey="value">
+                  {categoryDistribution.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={{fontSize: '12px', borderRadius: '0'}} />
+                <Legend layout="horizontal" align="center" verticalAlign="bottom" iconType="circle" wrapperStyle={{ paddingTop: '10px', bottom: 0 }} formatter={(value, entry: any) => <span className="text-[11px] uppercase font-normal text-slate-500">{value} ({entry.payload.percent}%)</span>} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
         {/* Evolução Mensal */}
-        <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-sm lg:col-span-2">
+        <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-sm lg:col-span-3">
           <div className="flex justify-between items-center mb-10 border-b border-slate-50 pb-4">
             <h3 className="text-[12px] font-semibold uppercase tracking-[0.2em] text-slate-400">Evolução de Consumo Mensal — {filterYear}</h3>
             <Calendar className={`w-4 h-4 ${theme.text}`} />
