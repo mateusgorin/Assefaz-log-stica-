@@ -12,9 +12,10 @@ interface ReportsProps {
   products: Product[];
   sectors: Sector[];
   stockStaff: StockStaff[];
+  showToast: (message: string, type?: 'success' | 'error') => void;
 }
 
-const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, sectors, stockStaff }) => {
+const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, sectors, stockStaff, showToast }) => {
   const now = new Date();
   const [activeTab, setActiveTab] = useState<'outflows' | 'entries'>('outflows');
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
@@ -231,7 +232,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
         doc.save(`Relatorio_Integrado_${unit.toUpperCase()}_${selectedMonth}_${selectedYear}.pdf`);
       } catch (error) {
         console.error("Erro ao gerar PDF:", error);
-        alert("Erro ao processar a integridade do relatório.");
+        showToast("Erro ao processar a integridade do relatório.", "error");
       }
       setGenerating(null);
       setDone(true);
@@ -310,7 +311,7 @@ const Reports: React.FC<ReportsProps> = ({ unit, movements, entries, products, s
         doc.save(`Relatorio_Entradas_${unit.toUpperCase()}_${selectedMonth}_${selectedYear}.pdf`);
       } catch (error) {
         console.error("Erro ao gerar PDF de entradas:", error);
-        alert("Erro ao processar o relatório de entradas.");
+        showToast("Erro ao processar o relatório de entradas.", "error");
       }
       setGenerating(null);
       setDone(true);

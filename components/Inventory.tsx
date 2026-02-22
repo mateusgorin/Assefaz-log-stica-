@@ -7,9 +7,10 @@ interface InventoryProps {
   unit: Unit;
   products: Product[];
   onUpdateStock: (productId: string, newStock: number) => Promise<void>;
+  showToast: (message: string, type?: 'success' | 'error') => void;
 }
 
-const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock }) => {
+const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock, showToast }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('TODOS');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -34,7 +35,7 @@ const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock }) 
     if (!editingProduct) return;
     const newValue = parseInt(editValue);
     if (isNaN(newValue) || newValue < 0) {
-      alert("Por favor, insira um valor válido.");
+      showToast("Por favor, insira um valor válido.", "error");
       return;
     }
 

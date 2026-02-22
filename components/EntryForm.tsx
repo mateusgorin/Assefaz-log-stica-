@@ -11,6 +11,7 @@ interface EntryFormProps {
   entries: Entry[];
   onAddStock: (data: { items: { productId: string, quantity: number, unitPrice: number }[], staffId: string, signature: string }) => void;
   onNavigate: (view: View) => void;
+  showToast: (message: string, type?: 'success' | 'error') => void;
 }
 
 interface BatchItem {
@@ -19,7 +20,7 @@ interface BatchItem {
   unitPrice: number;
 }
 
-const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entries, onAddStock, onNavigate }) => {
+const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entries, onAddStock, onNavigate, showToast }) => {
   const [productId, setProductId] = useState('');
   const [staffId, setStaffId] = useState('');
   const [quantity, setQuantity] = useState<number | string>(1);
@@ -75,7 +76,7 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
     setErrors(newErrors);
 
     if (Object.values(newErrors).some(err => err)) {
-      if (newErrors.items) alert("Adicione pelo menos um item ao lote antes de confirmar.");
+      if (newErrors.items) showToast("Adicione pelo menos um item ao lote antes de confirmar.", "error");
       return;
     }
 

@@ -13,7 +13,7 @@ import Inventory from './components/Inventory';
 import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building, Lock, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
 
 // SENHA DE ACESSO DO SISTEMA ATUALIZADA
-const ACCESS_PASSCODE = "Assefaz89";
+const ACCESS_PASSCODE = (import.meta as any).env.VITE_ACCESS_PASSCODE || "Assefaz89";
 
 const App: React.FC = () => {
   const [isAuthorized, setIsAuthorized] = useState(() => localStorage.getItem('assefaz_auth') === 'true');
@@ -44,6 +44,7 @@ const App: React.FC = () => {
     message: string;
     confirmText?: string;
     onConfirm: () => void;
+    isSuccess?: boolean;
   }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -76,11 +77,9 @@ const App: React.FC = () => {
         supabase.from('entries').select('*').eq('unit', activeUnit).order('id', { ascending: false })
       ]);
 
-      if (prodsRes.error) console.error("Erro Produtos:", prodsRes.error);
-      if (secsRes.error) console.error("Erro Setores:", secsRes.error);
-      if (staffRes.error) console.error("Erro Operadores:", staffRes.error);
-      if (movsRes.error) console.error("Erro Movimentações:", movsRes.error);
-      if (entsRes.error) console.error("Erro Entradas:", entsRes.error);
+      if (prodsRes.error || secsRes.error || staffRes.error || movsRes.error || entsRes.error) {
+        showToast("Erro ao sincronizar dados com o servidor.", "error");
+      }
 
       setProducts(prodsRes.data || []);
       setSectors(secsRes.data || []);
@@ -145,13 +144,22 @@ const App: React.FC = () => {
       title, 
       message, 
       confirmText,
+      isSuccess: false,
       onConfirm: async () => {
         try {
           await onConfirm();
+          setConfirmModal(prev => ({ 
+            ...prev, 
+            isSuccess: true, 
+            title: "Concluído!", 
+            message: "A exclusão foi realizada com sucesso." 
+          }));
+          setTimeout(() => {
+            closeConfirm();
+          }, 1500);
         } catch (err) {
           console.error("Erro na confirmação:", err);
           showToast("Ocorreu um erro ao processar a operação.", "error");
-        } finally {
           closeConfirm();
         }
       } 
@@ -191,7 +199,7 @@ const App: React.FC = () => {
 
       if (movError) {
         console.error("Erro ao inserir saída:", movError);
-        alert(`Erro ao salvar saída: ${movError.message}\n\nVerifique se a coluna 'batch_id' existe na tabela 'movements' do seu Supabase.`);
+        showToast(`Erro ao salvar saída: ${movError.message}`, "error");
         return;
       }
 
@@ -205,8 +213,10 @@ const App: React.FC = () => {
       }
       
       await fetchData();
+      showToast("Saída de estoque registrada com sucesso!");
     } catch (err) {
       console.error("Erro inesperado na saída de estoque:", err);
+      showToast("Erro ao registrar saída.", "error");
     }
   }, [activeUnit, products, fetchData]);
 
@@ -221,7 +231,6 @@ const App: React.FC = () => {
           showToast(`Erro ao excluir: ${error.message}`, "error");
         } else {
           await fetchData();
-          showToast("Setor excluído com sucesso!");
         }
       }
     );
@@ -238,7 +247,6 @@ const App: React.FC = () => {
           showToast(`Erro ao excluir: ${error.message}`, "error");
         } else {
           await fetchData();
-          showToast("Produto excluído com sucesso!");
         }
       }
     );
@@ -267,7 +275,7 @@ const App: React.FC = () => {
 
       if (entryError) {
         console.error("Erro ao inserir entrada:", entryError);
-        alert(`Erro do Banco de Dados: ${entryError.message}\n\nATENÇÃO: Verifique se a coluna 'unit_price' (tipo numeric ou float8) foi criada na tabela 'entries' do Supabase.`);
+        showToast(`Erro ao salvar entrada: ${entryError.message}`, "error");
         return;
       }
 
@@ -281,29 +289,44 @@ const App: React.FC = () => {
       }
       
       await fetchData();
+      showToast("Entrada de estoque registrada com sucesso!");
     } catch (err) {
       console.error("Erro inesperado na entrada de estoque:", err);
+      showToast("Erro ao registrar entrada.", "error");
     }
   }, [products, activeUnit, fetchData]);
 
   const handleUpdateStock = useCallback(async (productId: string, newStock: number) => {
     const { error } = await supabase.from('products').update({ stock: newStock }).eq('id', productId);
-    if (!error) await fetchData();
+    if (error) {
+      console.error("Erro ao atualizar estoque:", error);
+      showToast(`Erro ao atualizar estoque: ${error.message}`, "error");
+    } else {
+      await fetchData();
+      showToast("Estoque atualizado com sucesso!");
+    }
   }, [fetchData]);
 
   const handleAddProduct = useCallback(async (p: Omit<Product, 'id' | 'location'>) => {
     if (!activeUnit) return;
     const { error } = await supabase.from('products').insert([{ ...p, location: activeUnit, active: true }]);
-    if (!error) await fetchData();
+    if (error) {
+      console.error("Erro ao adicionar produto:", error);
+      showToast(`Erro ao adicionar: ${error.message}`, "error");
+    } else {
+      await fetchData();
+      showToast("Produto adicionado com sucesso!");
+    }
   }, [fetchData, activeUnit]);
 
   const handleUpdateProduct = useCallback(async (id: string, updates: Partial<Product>) => {
     const { error } = await supabase.from('products').update(updates).eq('id', id);
     if (error) {
       console.error("Erro ao atualizar produto:", error);
-      alert(`Erro ao atualizar produto: ${error.message}\n\nVerifique se a coluna 'active' (tipo boolean, default true) foi criada na tabela 'products'.`);
+      showToast(`Erro ao atualizar: ${error.message}`, "error");
     } else {
       await fetchData();
+      showToast("Produto atualizado com sucesso!");
     }
   }, [fetchData]);
 
@@ -312,9 +335,10 @@ const App: React.FC = () => {
     const { error } = await supabase.from('collaborators').insert([{ ...s, location: activeUnit, active: true }]);
     if (error) {
       console.error("Erro ao adicionar setor:", error);
-      alert(`Erro ao adicionar setor: ${error.message}\n\nVerifique se a tabela 'collaborators' no Supabase foi atualizada corretamente (ex: se a coluna 'department' foi removida ou permite nulo).`);
+      showToast(`Erro ao adicionar: ${error.message}`, "error");
     } else {
       await fetchData();
+      showToast("Setor adicionado com sucesso!");
     }
   }, [fetchData, activeUnit]);
 
@@ -322,83 +346,141 @@ const App: React.FC = () => {
     const { error } = await supabase.from('collaborators').update(updates).eq('id', id);
     if (error) {
       console.error("Erro ao atualizar setor:", error);
-      alert(`Erro ao atualizar setor: ${error.message}\n\nVerifique se a coluna 'active' (tipo boolean, default true) foi criada na tabela 'collaborators'.`);
+      showToast(`Erro ao atualizar: ${error.message}`, "error");
     } else {
       await fetchData();
+      showToast("Setor atualizado com sucesso!");
     }
   }, [fetchData]);
 
   const handleAddStaff = useCallback(async (s: Omit<StockStaff, 'id' | 'location'>) => {
     if (!activeUnit) return;
     const { error } = await supabase.from('stock_staff').insert([{ ...s, location: activeUnit, active: true }]);
-    if (!error) await fetchData();
+    if (error) {
+      console.error("Erro ao adicionar operador:", error);
+      showToast(`Erro ao adicionar: ${error.message}`, "error");
+    } else {
+      await fetchData();
+      showToast("Operador adicionado com sucesso!");
+    }
   }, [fetchData, activeUnit]);
 
   const handleUpdateStaff = useCallback(async (id: string, updates: Partial<StockStaff>) => {
     const { error } = await supabase.from('stock_staff').update(updates).eq('id', id);
     if (error) {
       console.error("Erro ao atualizar operador:", error);
-      alert(`Erro ao atualizar operador: ${error.message}\n\nVerifique se a coluna 'active' (tipo boolean, default true) foi criada na tabela 'stock_staff'.`);
+      showToast(`Erro ao atualizar: ${error.message}`, "error");
     } else {
       await fetchData();
+      showToast("Operador atualizado com sucesso!");
     }
   }, [fetchData]);
 
   const handleDeleteMovement = useCallback((batchId: string) => {
-    openConfirm("Excluir Registro?", "O histórico de saída será apagado.", async () => {
+    openConfirm("Excluir Registro?", "O histórico de saída será apagado e o estoque será devolvido.", async () => {
       try {
-        // Se o batchId for uma string que não é número (ex: OUT-...), deletamos apenas pelo batch_id
-        // Se for um número (ID antigo), deletamos pelo ID
         const isNumeric = !isNaN(Number(batchId)) && !batchId.includes('-');
         
-        let query;
+        // 1. Buscar os itens que serão deletados para reverter o estoque
+        let fetchQuery;
         if (isNumeric) {
-          query = supabase.from('movements').delete().eq('id', batchId);
+          fetchQuery = supabase.from('movements').select('product_id, quantity').eq('id', batchId);
         } else {
-          query = supabase.from('movements').delete().eq('batch_id', batchId);
+          fetchQuery = supabase.from('movements').select('product_id, quantity').eq('batch_id', batchId);
         }
 
-        const { error } = await query;
+        const { data: itemsToRevert, error: fetchError } = await fetchQuery;
+
+        if (fetchError) {
+          throw new Error(`Erro ao buscar dados para reversão: ${fetchError.message}`);
+        }
+
+        // 2. Reverter o estoque
+        if (itemsToRevert) {
+          for (const item of itemsToRevert) {
+            const product = products.find(p => p.id === item.product_id);
+            if (product) {
+              const newStock = product.stock + item.quantity;
+              await supabase.from('products').update({ stock: newStock }).eq('id', item.product_id);
+            }
+          }
+        }
+
+        // 3. Deletar os registros
+        let deleteQuery;
+        if (isNumeric) {
+          deleteQuery = supabase.from('movements').delete().eq('id', batchId);
+        } else {
+          deleteQuery = supabase.from('movements').delete().eq('batch_id', batchId);
+        }
+
+        const { error: deleteError } = await deleteQuery;
         
-        if (error) {
-          console.error("Erro ao excluir saída:", error);
-          showToast(`Erro ao excluir: ${error.message}`, "error");
+        if (deleteError) {
+          console.error("Erro ao excluir saída:", deleteError);
+          showToast(`Erro ao excluir: ${deleteError.message}`, "error");
         } else {
           await fetchData();
-          showToast("Registro de saída excluído com sucesso!");
         }
       } catch (err) {
         console.error("Erro inesperado ao excluir:", err);
+        showToast("Erro ao processar a exclusão.", "error");
       }
     });
-  }, [fetchData]);
+  }, [fetchData, products]);
 
   const handleDeleteEntry = useCallback((batchId: string) => {
-    openConfirm("Excluir Ficha de Entrada?", "Todos os itens deste lote serão removidos do histórico.", async () => {
+    openConfirm("Excluir Ficha de Entrada?", "Todos os itens deste lote serão removidos e o estoque será subtraído.", async () => {
       try {
         const isNumeric = !isNaN(Number(batchId)) && !batchId.includes('-');
         
-        let query;
+        // 1. Buscar os itens para reverter o estoque
+        let fetchQuery;
         if (isNumeric) {
-          query = supabase.from('entries').delete().eq('id', batchId);
+          fetchQuery = supabase.from('entries').select('product_id, quantity').eq('id', batchId);
         } else {
-          query = supabase.from('entries').delete().eq('batch_id', batchId);
+          fetchQuery = supabase.from('entries').select('product_id, quantity').eq('batch_id', batchId);
         }
 
-        const { error } = await query;
+        const { data: itemsToRevert, error: fetchError } = await fetchQuery;
+
+        if (fetchError) {
+          throw new Error(`Erro ao buscar dados para reversão: ${fetchError.message}`);
+        }
+
+        // 2. Reverter o estoque (subtrair o que entrou)
+        if (itemsToRevert) {
+          for (const item of itemsToRevert) {
+            const product = products.find(p => p.id === item.product_id);
+            if (product) {
+              const newStock = Math.max(0, product.stock - item.quantity);
+              await supabase.from('products').update({ stock: newStock }).eq('id', item.product_id);
+            }
+          }
+        }
+
+        // 3. Deletar os registros
+        let deleteQuery;
+        if (isNumeric) {
+          deleteQuery = supabase.from('entries').delete().eq('id', batchId);
+        } else {
+          deleteQuery = supabase.from('entries').delete().eq('batch_id', batchId);
+        }
+
+        const { error: deleteError } = await deleteQuery;
         
-        if (error) {
-          console.error("Erro ao excluir entrada:", error);
-          showToast(`Erro ao excluir: ${error.message}`, "error");
+        if (deleteError) {
+          console.error("Erro ao excluir entrada:", deleteError);
+          showToast(`Erro ao excluir: ${deleteError.message}`, "error");
         } else {
           await fetchData();
-          showToast("Ficha de entrada excluída com sucesso!");
         }
       } catch (err) {
         console.error("Erro inesperado ao excluir:", err);
+        showToast("Erro ao processar a exclusão.", "error");
       }
     });
-  }, [fetchData]);
+  }, [fetchData, products]);
 
   const handleDeleteStaff = useCallback((id: string) => {
     openConfirm("Remover Operador?", "Ele não aparecerá mais nas listas de entrega.", async () => {
@@ -408,7 +490,6 @@ const App: React.FC = () => {
         showToast(`Erro ao excluir: ${error.message}`, "error");
       } else {
         await fetchData();
-        showToast("Operador removido com sucesso!");
       }
     });
   }, [fetchData]);
@@ -521,35 +602,39 @@ const App: React.FC = () => {
       {confirmModal.isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeConfirm} />
-          <div className={`relative bg-white w-full max-w-sm p-8 shadow-2xl border-t-8 ${theme.confirmBorder} animate-in zoom-in duration-200`}>
-            <button onClick={closeConfirm} className="absolute top-4 right-4 text-slate-300 hover:text-slate-600 transition-colors">
-              <X className="w-5 h-5" />
-            </button>
+          <div className={`relative bg-white w-full max-w-sm p-8 shadow-2xl border-t-8 ${confirmModal.isSuccess ? 'border-green-500' : theme.confirmBorder} animate-in zoom-in duration-200`}>
+            {!confirmModal.isSuccess && (
+              <button onClick={closeConfirm} className="absolute top-4 right-4 text-slate-300 hover:text-slate-600 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            )}
             <div className="flex justify-center mb-6">
-              <div className={`w-16 h-16 ${theme.confirmIconBg} rounded-full flex items-center justify-center ${theme.confirmIconText}`}>
-                <Trash2 className="w-8 h-8" />
+              <div className={`w-16 h-16 ${confirmModal.isSuccess ? 'bg-green-50 text-green-500' : theme.confirmIconBg} rounded-full flex items-center justify-center ${confirmModal.isSuccess ? '' : theme.confirmIconText}`}>
+                {confirmModal.isSuccess ? <CheckCircle className="w-8 h-8" /> : <Trash2 className="w-8 h-8" />}
               </div>
             </div>
-            <h3 className="text-center text-[16px] font-semibold text-slate-800 uppercase tracking-tighter mb-2">
+            <h3 className={`text-center text-[16px] font-semibold uppercase tracking-tighter mb-2 ${confirmModal.isSuccess ? 'text-green-600' : 'text-slate-800'}`}>
               {confirmModal.title}
             </h3>
             <p className="text-center text-[11px] text-slate-500 uppercase font-normal tracking-tight leading-relaxed mb-8">
               {confirmModal.message}
             </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button 
-                onClick={closeConfirm} 
-                className="py-3 bg-slate-100 text-slate-600 text-[12px] font-semibold uppercase tracking-widest hover:bg-slate-200 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button 
-                onClick={confirmModal.onConfirm} 
-                className={`py-3 ${theme.confirmBtn} text-white text-[12px] font-semibold uppercase tracking-widest transition-colors shadow-lg shadow-black/10`}
-              >
-                {confirmModal.confirmText || "Sim, Confirmar"}
-              </button>
-            </div>
+            {!confirmModal.isSuccess && (
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  onClick={closeConfirm} 
+                  className="py-3 bg-slate-100 text-slate-600 text-[12px] font-semibold uppercase tracking-widest hover:bg-slate-200 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={confirmModal.onConfirm} 
+                  className={`py-3 ${theme.confirmBtn} text-white text-[12px] font-semibold uppercase tracking-widest transition-colors shadow-lg shadow-black/10`}
+                >
+                  {confirmModal.confirmText || "Sim, Confirmar"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -593,12 +678,12 @@ const App: React.FC = () => {
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 custom-scrollbar">
           <div className="max-w-6xl mx-auto">
             {currentView === View.DASHBOARD && <Dashboard unit={activeUnit} movements={movements} products={products} sectors={sectors} />}
-            {currentView === View.OUTFLOW && <OutflowForm unit={activeUnit} products={products} sectors={sectors} stockStaff={stockStaff} onAddMovement={handleAddMovement} onNavigate={(view) => { setCurrentView(view); setHistoryTab('outflows'); }} />}
-            {currentView === View.ENTRY && <EntryForm unit={activeUnit} products={products} stockStaff={stockStaff} entries={entries} onAddStock={handleAddStock} onNavigate={(view) => { setCurrentView(view); setHistoryTab('entries'); }} />}
-            {currentView === View.STOCK && <Inventory unit={activeUnit} products={products} onUpdateStock={handleUpdateStock} />}
+            {currentView === View.OUTFLOW && <OutflowForm unit={activeUnit} products={products} sectors={sectors} stockStaff={stockStaff} onAddMovement={handleAddMovement} onNavigate={(view) => { setCurrentView(view); setHistoryTab('outflows'); }} showToast={showToast} />}
+            {currentView === View.ENTRY && <EntryForm unit={activeUnit} products={products} stockStaff={stockStaff} entries={entries} onAddStock={handleAddStock} onNavigate={(view) => { setCurrentView(view); setHistoryTab('entries'); }} showToast={showToast} />}
+            {currentView === View.STOCK && <Inventory unit={activeUnit} products={products} onUpdateStock={handleUpdateStock} showToast={showToast} />}
             {currentView === View.HISTORY && <History unit={activeUnit} movements={movements} entries={entries} products={products} sectors={sectors} stockStaff={stockStaff} onDelete={handleDeleteMovement} onDeleteEntry={handleDeleteEntry} initialTab={historyTab} />}
             {currentView === View.MANAGEMENT && <Management unit={activeUnit} products={products} sectors={sectors} stockStaff={stockStaff} onAddProduct={handleAddProduct} onAddSector={handleAddSector} onAddStaff={handleAddStaff} onDeleteProduct={handleDeleteProduct} onDeleteSector={handleDeleteSector} onDeleteStaff={handleDeleteStaff} onUpdateProduct={handleUpdateProduct} onUpdateSector={handleUpdateSector} onUpdateStaff={handleUpdateStaff} openConfirm={openConfirm} />}
-            {currentView === View.REPORTS && <Reports unit={activeUnit} movements={movements} entries={entries} products={products} sectors={sectors} stockStaff={stockStaff} />}
+            {currentView === View.REPORTS && <Reports unit={activeUnit} movements={movements} entries={entries} products={products} sectors={sectors} stockStaff={stockStaff} showToast={showToast} />}
           </div>
         </main>
       </div>

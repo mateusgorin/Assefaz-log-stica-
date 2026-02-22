@@ -16,6 +16,7 @@ interface OutflowFormProps {
     signatureDeliverer: string 
   }) => void;
   onNavigate: (view: View) => void;
+  showToast: (message: string, type?: 'success' | 'error') => void;
 }
 
 interface BatchItem {
@@ -23,7 +24,7 @@ interface BatchItem {
   quantity: number;
 }
 
-const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stockStaff, onAddMovement, onNavigate }) => {
+const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stockStaff, onAddMovement, onNavigate, showToast }) => {
   const [sectorId, setSectorId] = useState('');
   const [productId, setProductId] = useState('');
   const [staffId, setStaffId] = useState('');
@@ -76,7 +77,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
     setErrors(newErrors);
 
     if (Object.values(newErrors).some(error => error)) {
-      if (newErrors.items) alert("Adicione pelo menos um item ao lote antes de confirmar.");
+      if (newErrors.items) showToast("Adicione pelo menos um item ao lote antes de confirmar.", "error");
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
