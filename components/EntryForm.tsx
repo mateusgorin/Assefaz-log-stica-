@@ -117,8 +117,8 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
 
       <div className="max-w-5xl mx-auto space-y-12">
         {/* FORMULÁRIO DE REGISTRO EM LOTE */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
+        <section className="flex flex-col gap-10">
+          <div className="space-y-6">
             <div className="flex items-center gap-2 mb-2">
               <ArrowDownCircle className="w-4 h-4 text-emerald-600" />
               <h2 className="text-[16px] font-semibold uppercase tracking-widest text-slate-700">Montar Lote de Recebimento</h2>
