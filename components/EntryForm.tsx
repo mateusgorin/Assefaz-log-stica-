@@ -134,7 +134,7 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
                   <label className={labelClass(errors.product)}>Insumo / Material</label>
                   <select value={productId} onChange={(e) => setProductId(e.target.value)} className={inputClass(errors.product)}>
                     <option value="">Selecione...</option>
-                    {products.sort((a,b) => a.name.localeCompare(b.name)).map(p => (
+                    {products.filter(p => p.active !== false).sort((a,b) => a.name.localeCompare(b.name)).map(p => (
                       <option key={p.id} value={p.id}>{p.name.toUpperCase()}</option>
                     ))}
                   </select>
@@ -229,7 +229,7 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
                 <label className={labelClass(errors.staff)}>Operador Responsável</label>
                 <select value={staffId} onChange={(e) => setStaffId(e.target.value)} className={inputClass(errors.staff)} disabled={loading}>
                   <option value="">Selecione...</option>
-                  {stockStaff.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
+                  {stockStaff.filter(s => s.active !== false).map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
                 </select>
               </div>
 

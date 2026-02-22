@@ -19,6 +19,7 @@ const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock }) 
   const categories = ['TODOS', ...new Set(products.map(p => p.category.toUpperCase()))];
 
   const filteredProducts = products.filter(p => {
+    if (p.active === false) return false;
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'TODOS' || p.category.toUpperCase() === categoryFilter;
     return matchesSearch && matchesCategory;

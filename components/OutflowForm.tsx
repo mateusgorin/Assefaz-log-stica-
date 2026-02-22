@@ -148,7 +148,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
                     className={getInputClass(!!errors.product)}
                   >
                     <option value="">Selecione...</option>
-                    {products.sort((a,b) => a.name.localeCompare(b.name)).map(p => (
+                    {products.filter(p => p.active !== false).sort((a,b) => a.name.localeCompare(b.name)).map(p => (
                       <option key={p.id} value={p.id}>{p.name.toUpperCase()} ({p.stock})</option>
                     ))}
                   </select>
@@ -237,7 +237,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
                   disabled={loading}
                 >
                   <option value="">Selecione...</option>
-                  {sectors.map(s => (
+                  {sectors.filter(s => s.active !== false).map(s => (
                     <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>
                   ))}
                 </select>
@@ -255,7 +255,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
                   disabled={loading}
                 >
                   <option value="">Selecione...</option>
-                  {stockStaff.map(s => (
+                  {stockStaff.filter(s => s.active !== false).map(s => (
                     <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>
                   ))}
                 </select>

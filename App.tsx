@@ -256,13 +256,23 @@ const App: React.FC = () => {
 
   const handleAddProduct = useCallback(async (p: Omit<Product, 'id' | 'location'>) => {
     if (!activeUnit) return;
-    const { error } = await supabase.from('products').insert([{ ...p, location: activeUnit }]);
+    const { error } = await supabase.from('products').insert([{ ...p, location: activeUnit, active: true }]);
     if (!error) await fetchData();
   }, [fetchData, activeUnit]);
 
+  const handleUpdateProduct = useCallback(async (id: string, updates: Partial<Product>) => {
+    const { error } = await supabase.from('products').update(updates).eq('id', id);
+    if (error) {
+      console.error("Erro ao atualizar produto:", error);
+      alert(`Erro ao atualizar produto: ${error.message}\n\nVerifique se a coluna 'active' (tipo boolean, default true) foi criada na tabela 'products'.`);
+    } else {
+      await fetchData();
+    }
+  }, [fetchData]);
+
   const handleAddSector = useCallback(async (s: Omit<Sector, 'id' | 'location'>) => {
     if (!activeUnit) return;
-    const { error } = await supabase.from('collaborators').insert([{ ...s, location: activeUnit }]);
+    const { error } = await supabase.from('collaborators').insert([{ ...s, location: activeUnit, active: true }]);
     if (error) {
       console.error("Erro ao adicionar setor:", error);
       alert(`Erro ao adicionar setor: ${error.message}\n\nVerifique se a tabela 'collaborators' no Supabase foi atualizada corretamente (ex: se a coluna 'department' foi removida ou permite nulo).`);
@@ -271,11 +281,31 @@ const App: React.FC = () => {
     }
   }, [fetchData, activeUnit]);
 
+  const handleUpdateSector = useCallback(async (id: string, updates: Partial<Sector>) => {
+    const { error } = await supabase.from('collaborators').update(updates).eq('id', id);
+    if (error) {
+      console.error("Erro ao atualizar setor:", error);
+      alert(`Erro ao atualizar setor: ${error.message}\n\nVerifique se a coluna 'active' (tipo boolean, default true) foi criada na tabela 'collaborators'.`);
+    } else {
+      await fetchData();
+    }
+  }, [fetchData]);
+
   const handleAddStaff = useCallback(async (s: Omit<StockStaff, 'id' | 'location'>) => {
     if (!activeUnit) return;
-    const { error } = await supabase.from('stock_staff').insert([{ ...s, location: activeUnit }]);
+    const { error } = await supabase.from('stock_staff').insert([{ ...s, location: activeUnit, active: true }]);
     if (!error) await fetchData();
   }, [fetchData, activeUnit]);
+
+  const handleUpdateStaff = useCallback(async (id: string, updates: Partial<StockStaff>) => {
+    const { error } = await supabase.from('stock_staff').update(updates).eq('id', id);
+    if (error) {
+      console.error("Erro ao atualizar operador:", error);
+      alert(`Erro ao atualizar operador: ${error.message}\n\nVerifique se a coluna 'active' (tipo boolean, default true) foi criada na tabela 'stock_staff'.`);
+    } else {
+      await fetchData();
+    }
+  }, [fetchData]);
 
   const handleDeleteMovement = useCallback((batchId: string) => {
     openConfirm("Excluir Registro?", "O histórico de saída será apagado.", async () => {
@@ -474,7 +504,7 @@ const App: React.FC = () => {
             {currentView === View.ENTRY && <EntryForm unit={activeUnit} products={products} stockStaff={stockStaff} entries={entries} onAddStock={handleAddStock} onNavigate={(view) => { setCurrentView(view); setHistoryTab('entries'); }} />}
             {currentView === View.STOCK && <Inventory unit={activeUnit} products={products} onUpdateStock={handleUpdateStock} />}
             {currentView === View.HISTORY && <History unit={activeUnit} movements={movements} entries={entries} products={products} sectors={sectors} stockStaff={stockStaff} onDelete={handleDeleteMovement} onDeleteEntry={handleDeleteEntry} initialTab={historyTab} />}
-            {currentView === View.MANAGEMENT && <Management unit={activeUnit} products={products} sectors={sectors} stockStaff={stockStaff} onAddProduct={handleAddProduct} onAddSector={handleAddSector} onAddStaff={handleAddStaff} onDeleteProduct={handleDeleteProduct} onDeleteSector={handleDeleteSector} onDeleteStaff={handleDeleteStaff} />}
+            {currentView === View.MANAGEMENT && <Management unit={activeUnit} products={products} sectors={sectors} stockStaff={stockStaff} onAddProduct={handleAddProduct} onAddSector={handleAddSector} onAddStaff={handleAddStaff} onDeleteProduct={handleDeleteProduct} onDeleteSector={handleDeleteSector} onDeleteStaff={handleDeleteStaff} onUpdateProduct={handleUpdateProduct} onUpdateSector={handleUpdateSector} onUpdateStaff={handleUpdateStaff} />}
             {currentView === View.REPORTS && <Reports unit={activeUnit} movements={movements} entries={entries} products={products} sectors={sectors} stockStaff={stockStaff} />}
           </div>
         </main>

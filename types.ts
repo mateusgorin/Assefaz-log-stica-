@@ -8,18 +8,21 @@ export interface Product {
   unit: string; // Unidade de medida (Litro, Unidade, etc)
   stock: number;
   location: Unit; // Unidade física (Sede ou 506)
+  active?: boolean;
 }
 
 export interface Sector {
   id: string;
   name: string;
   location: Unit;
+  active?: boolean;
 }
 
 export interface StockStaff {
   id: string;
   name: string;
   location: Unit;
+  active?: boolean;
 }
 
 export interface Movement {
