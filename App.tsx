@@ -10,7 +10,7 @@ import History from './components/History';
 import Management from './components/Management';
 import Reports from './components/Reports';
 import Inventory from './components/Inventory';
-import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building, Lock, ArrowRight } from 'lucide-react';
+import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building, Lock, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
 
 // SENHA DE ACESSO DO SISTEMA ATUALIZADA
 const ACCESS_PASSCODE = "Assefaz89";
@@ -26,6 +26,17 @@ const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [configured, setConfigured] = useState(isConfigured());
+
+  const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
+    show: false,
+    message: '',
+    type: 'success'
+  });
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 2000);
+  };
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -128,15 +139,21 @@ const App: React.FC = () => {
     }
   }, [configured, activeUnit, fetchData, isAuthorized]);
 
-  const openConfirm = (title: string, message: string, onConfirm: () => void, confirmText?: string) => {
+  const openConfirm = (title: string, message: string, onConfirm: () => void | Promise<void>, confirmText?: string) => {
     setConfirmModal({ 
       isOpen: true, 
       title, 
       message, 
       confirmText,
-      onConfirm: () => {
-        onConfirm();
-        closeConfirm();
+      onConfirm: async () => {
+        try {
+          await onConfirm();
+        } catch (err) {
+          console.error("Erro na confirmação:", err);
+          showToast("Ocorreu um erro ao processar a operação.", "error");
+        } finally {
+          closeConfirm();
+        }
       } 
     });
   };
@@ -199,8 +216,13 @@ const App: React.FC = () => {
       "Esta ação é permanente e removerá todos os registros associados.", 
       async () => {
         const { error } = await supabase.from('collaborators').delete().eq('id', id);
-        if (!error) await fetchData();
-        closeConfirm();
+        if (error) {
+          console.error("Erro ao excluir setor:", error);
+          showToast(`Erro ao excluir: ${error.message}`, "error");
+        } else {
+          await fetchData();
+          showToast("Setor excluído com sucesso!");
+        }
       }
     );
   }, [fetchData]);
@@ -211,8 +233,13 @@ const App: React.FC = () => {
       "O item será excluído do catálogo permanentemente.", 
       async () => {
         const { error } = await supabase.from('products').delete().eq('id', id);
-        if (!error) await fetchData();
-        closeConfirm();
+        if (error) {
+          console.error("Erro ao excluir produto:", error);
+          showToast(`Erro ao excluir: ${error.message}`, "error");
+        } else {
+          await fetchData();
+          showToast("Produto excluído com sucesso!");
+        }
       }
     );
   }, [fetchData]);
@@ -319,26 +346,70 @@ const App: React.FC = () => {
 
   const handleDeleteMovement = useCallback((batchId: string) => {
     openConfirm("Excluir Registro?", "O histórico de saída será apagado.", async () => {
-      const { error } = await supabase.from('movements').delete().or(`batch_id.eq.${batchId},id.eq.${batchId}`);
-      if (!error) await fetchData();
-      closeConfirm();
+      try {
+        // Se o batchId for uma string que não é número (ex: OUT-...), deletamos apenas pelo batch_id
+        // Se for um número (ID antigo), deletamos pelo ID
+        const isNumeric = !isNaN(Number(batchId)) && !batchId.includes('-');
+        
+        let query;
+        if (isNumeric) {
+          query = supabase.from('movements').delete().eq('id', batchId);
+        } else {
+          query = supabase.from('movements').delete().eq('batch_id', batchId);
+        }
+
+        const { error } = await query;
+        
+        if (error) {
+          console.error("Erro ao excluir saída:", error);
+          showToast(`Erro ao excluir: ${error.message}`, "error");
+        } else {
+          await fetchData();
+          showToast("Registro de saída excluído com sucesso!");
+        }
+      } catch (err) {
+        console.error("Erro inesperado ao excluir:", err);
+      }
     });
   }, [fetchData]);
 
   const handleDeleteEntry = useCallback((batchId: string) => {
     openConfirm("Excluir Ficha de Entrada?", "Todos os itens deste lote serão removidos do histórico.", async () => {
-      // Deleta tanto pelo batch_id quanto pelo id (caso seja registro antigo sem batch_id)
-      const { error } = await supabase.from('entries').delete().or(`batch_id.eq.${batchId},id.eq.${batchId}`);
-      if (!error) await fetchData();
-      closeConfirm();
+      try {
+        const isNumeric = !isNaN(Number(batchId)) && !batchId.includes('-');
+        
+        let query;
+        if (isNumeric) {
+          query = supabase.from('entries').delete().eq('id', batchId);
+        } else {
+          query = supabase.from('entries').delete().eq('batch_id', batchId);
+        }
+
+        const { error } = await query;
+        
+        if (error) {
+          console.error("Erro ao excluir entrada:", error);
+          showToast(`Erro ao excluir: ${error.message}`, "error");
+        } else {
+          await fetchData();
+          showToast("Ficha de entrada excluída com sucesso!");
+        }
+      } catch (err) {
+        console.error("Erro inesperado ao excluir:", err);
+      }
     });
   }, [fetchData]);
 
   const handleDeleteStaff = useCallback((id: string) => {
     openConfirm("Remover Operador?", "Ele não aparecerá mais nas listas de entrega.", async () => {
       const { error } = await supabase.from('stock_staff').delete().eq('id', id);
-      if (!error) await fetchData();
-      closeConfirm();
+      if (error) {
+        console.error("Erro ao excluir operador:", error);
+        showToast(`Erro ao excluir: ${error.message}`, "error");
+      } else {
+        await fetchData();
+        showToast("Operador removido com sucesso!");
+      }
     });
   }, [fetchData]);
 
@@ -435,6 +506,18 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-[#F4F6F8]">
+      {/* TOAST NOTIFICATION */}
+      {toast.show && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 pointer-events-none">
+          <div className={`flex flex-col items-center gap-4 px-10 py-8 shadow-2xl border-t-8 animate-in zoom-in duration-300 pointer-events-auto ${toast.type === 'success' ? 'bg-white border-green-500 text-slate-800' : 'bg-white border-red-500 text-red-800'}`}>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center ${toast.type === 'success' ? 'bg-green-50 text-green-500' : 'bg-red-50 text-red-500'}`}>
+              {toast.type === 'success' ? <CheckCircle className="w-10 h-10" /> : <AlertCircle className="w-10 h-10" />}
+            </div>
+            <p className="text-[14px] font-bold uppercase tracking-[0.2em] text-center max-w-xs">{toast.message}</p>
+          </div>
+        </div>
+      )}
+
       {confirmModal.isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeConfirm} />
