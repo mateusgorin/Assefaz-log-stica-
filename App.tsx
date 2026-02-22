@@ -31,6 +31,7 @@ const App: React.FC = () => {
     isOpen: boolean;
     title: string;
     message: string;
+    confirmText?: string;
     onConfirm: () => void;
   }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
@@ -127,8 +128,17 @@ const App: React.FC = () => {
     }
   }, [configured, activeUnit, fetchData, isAuthorized]);
 
-  const openConfirm = (title: string, message: string, onConfirm: () => void) => {
-    setConfirmModal({ isOpen: true, title, message, onConfirm });
+  const openConfirm = (title: string, message: string, onConfirm: () => void, confirmText?: string) => {
+    setConfirmModal({ 
+      isOpen: true, 
+      title, 
+      message, 
+      confirmText,
+      onConfirm: () => {
+        onConfirm();
+        closeConfirm();
+      } 
+    });
   };
 
   const closeConfirm = () => {
@@ -454,7 +464,7 @@ const App: React.FC = () => {
                 onClick={confirmModal.onConfirm} 
                 className={`py-3 ${theme.confirmBtn} text-white text-[12px] font-semibold uppercase tracking-widest transition-colors shadow-lg shadow-black/10`}
               >
-                Sim, Apagar
+                {confirmModal.confirmText || "Sim, Confirmar"}
               </button>
             </div>
           </div>
@@ -504,7 +514,7 @@ const App: React.FC = () => {
             {currentView === View.ENTRY && <EntryForm unit={activeUnit} products={products} stockStaff={stockStaff} entries={entries} onAddStock={handleAddStock} onNavigate={(view) => { setCurrentView(view); setHistoryTab('entries'); }} />}
             {currentView === View.STOCK && <Inventory unit={activeUnit} products={products} onUpdateStock={handleUpdateStock} />}
             {currentView === View.HISTORY && <History unit={activeUnit} movements={movements} entries={entries} products={products} sectors={sectors} stockStaff={stockStaff} onDelete={handleDeleteMovement} onDeleteEntry={handleDeleteEntry} initialTab={historyTab} />}
-            {currentView === View.MANAGEMENT && <Management unit={activeUnit} products={products} sectors={sectors} stockStaff={stockStaff} onAddProduct={handleAddProduct} onAddSector={handleAddSector} onAddStaff={handleAddStaff} onDeleteProduct={handleDeleteProduct} onDeleteSector={handleDeleteSector} onDeleteStaff={handleDeleteStaff} onUpdateProduct={handleUpdateProduct} onUpdateSector={handleUpdateSector} onUpdateStaff={handleUpdateStaff} />}
+            {currentView === View.MANAGEMENT && <Management unit={activeUnit} products={products} sectors={sectors} stockStaff={stockStaff} onAddProduct={handleAddProduct} onAddSector={handleAddSector} onAddStaff={handleAddStaff} onDeleteProduct={handleDeleteProduct} onDeleteSector={handleDeleteSector} onDeleteStaff={handleDeleteStaff} onUpdateProduct={handleUpdateProduct} onUpdateSector={handleUpdateSector} onUpdateStaff={handleUpdateStaff} openConfirm={openConfirm} />}
             {currentView === View.REPORTS && <Reports unit={activeUnit} movements={movements} entries={entries} products={products} sectors={sectors} stockStaff={stockStaff} />}
           </div>
         </main>

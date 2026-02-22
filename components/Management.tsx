@@ -16,11 +16,13 @@ interface ManagementProps {
   onUpdateProduct: (id: string, updates: Partial<Product>) => void;
   onUpdateSector: (id: string, updates: Partial<Sector>) => void;
   onUpdateStaff: (id: string, updates: Partial<StockStaff>) => void;
+  openConfirm: (title: string, message: string, onConfirm: () => void, confirmText?: string) => void;
 }
 
 const Management: React.FC<ManagementProps> = ({ 
   unit, products, sectors, stockStaff, onAddProduct, onAddSector, onAddStaff,
-  onDeleteProduct, onDeleteSector, onDeleteStaff, onUpdateProduct, onUpdateSector, onUpdateStaff
+  onDeleteProduct, onDeleteSector, onDeleteStaff, onUpdateProduct, onUpdateSector, onUpdateStaff,
+  openConfirm
 }) => {
   const [prodName, setProdName] = useState('');
   const [prodCat, setProdCat] = useState('Químico');
@@ -159,7 +161,21 @@ const Management: React.FC<ManagementProps> = ({
                     <>
                       <button onClick={() => startEditProduct(p)} className="text-slate-400 hover:text-blue-600 p-1.5 transition-colors" title="Editar"><Edit2 className="w-3.5 h-3.5" /></button>
                       <button 
-                        onClick={() => onUpdateProduct(p.id, { active: p.active === false ? true : false })} 
+                        onClick={() => {
+                          const isInactivating = p.active !== false;
+                          if (isInactivating) {
+                            openConfirm(
+                              "Arquivar Produto?", 
+                              "Ao arquivar, o item não aparecerá mais nas listas de novas movimentações, mas todo o histórico passado permanece intacto para auditoria.", 
+                              () => {
+                                onUpdateProduct(p.id, { active: false });
+                              },
+                              "Sim, Arquivar"
+                            );
+                          } else {
+                            onUpdateProduct(p.id, { active: true });
+                          }
+                        }} 
                         className={`p-1.5 transition-colors ${p.active === false ? 'text-slate-400 hover:text-green-600' : 'text-slate-400 hover:text-orange-600'}`}
                         title={p.active === false ? "Reativar" : "Inativar"}
                       >
@@ -218,7 +234,21 @@ const Management: React.FC<ManagementProps> = ({
                     <>
                       <button onClick={() => startEditSector(s)} className="text-slate-400 hover:text-blue-600 p-1.5 transition-colors" title="Editar"><Edit2 className="w-3.5 h-3.5" /></button>
                       <button 
-                        onClick={() => onUpdateSector(s.id, { active: s.active === false ? true : false })} 
+                        onClick={() => {
+                          const isInactivating = s.active !== false;
+                          if (isInactivating) {
+                            openConfirm(
+                              "Arquivar Setor?", 
+                              "Ao arquivar, o setor não aparecerá mais nas listas de novas retiradas, mas o nome permanece preservado no histórico de movimentações antigas.", 
+                              () => {
+                                onUpdateSector(s.id, { active: false });
+                              },
+                              "Sim, Arquivar"
+                            );
+                          } else {
+                            onUpdateSector(s.id, { active: true });
+                          }
+                        }} 
                         className={`p-1.5 transition-colors ${s.active === false ? 'text-slate-400 hover:text-green-600' : 'text-slate-400 hover:text-orange-600'}`}
                         title={s.active === false ? "Reativar" : "Inativar"}
                       >
@@ -279,7 +309,21 @@ const Management: React.FC<ManagementProps> = ({
                       <>
                         <button onClick={() => startEditStaff(s)} className="text-slate-400 hover:text-blue-600 p-1 transition-colors" title="Editar"><Edit2 className="w-3 h-3" /></button>
                         <button 
-                          onClick={() => onUpdateStaff(s.id, { active: s.active === false ? true : false })} 
+                          onClick={() => {
+                            const isInactivating = s.active !== false;
+                            if (isInactivating) {
+                              openConfirm(
+                                "Arquivar Operador?", 
+                                "Ao arquivar, o colaborador não aparecerá mais nas listas de entrega, mas seu nome continuará aparecendo corretamente em todas as movimentações que ele realizou no passado.", 
+                                () => {
+                                  onUpdateStaff(s.id, { active: false });
+                                },
+                                "Sim, Arquivar"
+                              );
+                            } else {
+                              onUpdateStaff(s.id, { active: true });
+                            }
+                          }} 
                           className={`p-1 transition-colors ${s.active === false ? 'text-slate-400 hover:text-green-600' : 'text-slate-400 hover:text-orange-600'}`}
                           title={s.active === false ? "Reativar" : "Inativar"}
                         >
