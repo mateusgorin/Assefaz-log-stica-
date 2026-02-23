@@ -10,7 +10,8 @@ import History from './components/History';
 import Management from './components/Management';
 import Reports from './components/Reports';
 import Inventory from './components/Inventory';
-import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building, Lock, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
+import AboutSystem from './components/AboutSystem';
+import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building, Lock, ArrowRight, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
 // SENHA DE ACESSO DO SISTEMA ATUALIZADA
 const ACCESS_PASSCODE = (import.meta as any).env.VITE_ACCESS_PASSCODE || "Assefaz89";
@@ -19,6 +20,7 @@ const App: React.FC = () => {
   const [isAuthorized, setIsAuthorized] = useState(() => localStorage.getItem('assefaz_auth') === 'true');
   const [passcodeInput, setPasscodeInput] = useState('');
   const [passError, setPassError] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
   
   const [activeUnit, setActiveUnit] = useState<Unit | null>(null);
   const [currentView, setCurrentView] = useState<View>(View.DASHBOARD);
@@ -519,6 +521,16 @@ const App: React.FC = () => {
             </button>
           </div>
           <p className="mt-8 text-[11px] text-slate-300 uppercase tracking-widest font-normal">Uso restrito a funcionários autorizados</p>
+          
+          <button 
+            type="button"
+            onClick={() => setShowAboutModal(true)}
+            className="mt-6 flex items-center justify-center gap-2 text-[10px] text-slate-400 uppercase tracking-widest hover:text-amber-600 transition-colors mx-auto"
+          >
+            <Info className="w-3 h-3" /> Saiba mais sobre o sistema
+          </button>
+
+          {showAboutModal && <AboutSystem isModal onClose={() => setShowAboutModal(false)} />}
         </form>
       </div>
     );
@@ -684,6 +696,7 @@ const App: React.FC = () => {
             {currentView === View.HISTORY && <History unit={activeUnit} movements={movements} entries={entries} products={products} sectors={sectors} stockStaff={stockStaff} onDelete={handleDeleteMovement} onDeleteEntry={handleDeleteEntry} initialTab={historyTab} />}
             {currentView === View.MANAGEMENT && <Management unit={activeUnit} products={products} sectors={sectors} stockStaff={stockStaff} onAddProduct={handleAddProduct} onAddSector={handleAddSector} onAddStaff={handleAddStaff} onDeleteProduct={handleDeleteProduct} onDeleteSector={handleDeleteSector} onDeleteStaff={handleDeleteStaff} onUpdateProduct={handleUpdateProduct} onUpdateSector={handleUpdateSector} onUpdateStaff={handleUpdateStaff} openConfirm={openConfirm} />}
             {currentView === View.REPORTS && <Reports unit={activeUnit} movements={movements} entries={entries} products={products} sectors={sectors} stockStaff={stockStaff} showToast={showToast} />}
+            {currentView === View.ABOUT && <AboutSystem />}
           </div>
         </main>
       </div>

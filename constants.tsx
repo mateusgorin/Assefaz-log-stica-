@@ -7,7 +7,8 @@ import {
   History, 
   Settings, 
   FileText,
-  Boxes
+  Boxes,
+  Info
 } from 'lucide-react';
 import { Product, Sector, StockStaff, View, Movement } from './types';
 
@@ -24,6 +25,7 @@ export const MENU_ITEMS = [
   { id: View.HISTORY, label: 'Histórico', icon: <History className="w-5 h-5" /> },
   { id: View.MANAGEMENT, label: 'Cadastros', icon: <Settings className="w-5 h-5" /> },
   { id: View.REPORTS, label: 'Relatórios', icon: <FileText className="w-5 h-5" /> },
+  { id: View.ABOUT, label: 'Sobre o Sistema', icon: <Info className="w-5 h-5" /> },
 ];
 
 export const INITIAL_PRODUCTS: Product[] = [

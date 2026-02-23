@@ -59,5 +59,6 @@ export enum View {
   STOCK = 'STOCK',
   HISTORY = 'HISTORY',
   MANAGEMENT = 'MANAGEMENT',
-  REPORTS = 'REPORTS'
+  REPORTS = 'REPORTS',
+  ABOUT = 'ABOUT'
 }
