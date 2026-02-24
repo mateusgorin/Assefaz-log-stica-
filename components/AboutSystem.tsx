@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Info, Database, Shield, Zap, FileText, Layout, Smartphone, CheckCircle2, Building2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Info, Database, Shield, Zap, FileText, Layout, Smartphone, CheckCircle2, Building2, Download, Share, PlusSquare } from 'lucide-react';
 
 interface AboutSystemProps {
   onClose?: () => void;
@@ -7,6 +7,39 @@ interface AboutSystemProps {
 }
 
 const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) => {
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+
+    // iOS Detection
+    const iosCheck = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    setIsIOS(iosCheck);
+
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+      setIsInstalled(true);
+    }
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
+
   const content = (
     <div className={`bg-white ${isModal ? 'max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border-t-8 border-amber-500' : 'animate-in fade-in duration-500'}`}>
       {isModal && (
@@ -121,6 +154,66 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
             ))}
           </div>
         </section>
+
+        {/* Installation Section */}
+        {!isInstalled && (
+          <section className="bg-amber-50 border-2 border-amber-200 p-8 rounded-2xl space-y-6 animate-in slide-in-from-bottom-4 duration-700">
+            <div className="flex items-center gap-4">
+              <div className="bg-amber-500 p-3 rounded-xl text-white">
+                <Download className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-[18px] font-bold text-amber-900 uppercase tracking-tight">Instalar Aplicativo</h3>
+                <p className="text-[13px] text-amber-700 uppercase tracking-wide font-medium">Tenha acesso rápido direto da sua tela inicial</p>
+              </div>
+            </div>
+
+            {isIOS ? (
+              <div className="bg-white p-6 border border-amber-200 rounded-xl space-y-4 shadow-sm">
+                <p className="text-[14px] text-slate-700 font-medium leading-relaxed">
+                  Para instalar no seu <span className="font-bold">iPhone ou iPad</span>:
+                </p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-[13px] text-slate-600">
+                    <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center shrink-0">
+                      <Share className="w-4 h-4 text-blue-500" />
+                    </div>
+                    <span>1. Toque no botão de <strong>Compartilhar</strong> na barra do Safari.</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[13px] text-slate-600">
+                    <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center shrink-0">
+                      <PlusSquare className="w-4 h-4 text-slate-700" />
+                    </div>
+                    <span>2. Role para baixo e selecione <strong>"Adicionar à Tela de Início"</strong>.</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-[14px] text-amber-800 leading-relaxed">
+                  Clique no botão abaixo para instalar o sistema no seu <span className="font-bold">Android ou Computador</span>. O aplicativo aparecerá na sua lista de apps com o ícone oficial.
+                </p>
+                <button 
+                  onClick={handleInstall}
+                  disabled={!deferredPrompt}
+                  className={`w-full sm:w-auto px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-[13px] transition-all flex items-center justify-center gap-3 shadow-lg ${
+                    deferredPrompt 
+                      ? 'bg-[#14213D] text-white hover:bg-black hover:-translate-y-1 active:scale-95' 
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
+                >
+                  <Download className="w-5 h-5" />
+                  {deferredPrompt ? 'Instalar Agora' : 'Aguardando sinal...'}
+                </button>
+                {!deferredPrompt && (
+                  <p className="text-[11px] text-amber-600 font-medium uppercase tracking-wider italic">
+                    * Se o botão não ativar, verifique se já instalou ou se o navegador suporta instalação.
+                  </p>
+                )}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Footer Section */}
         <footer className="pt-12 border-t border-slate-100 text-center space-y-6">
