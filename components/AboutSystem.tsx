@@ -32,7 +32,10 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      alert("O seu navegador ainda está preparando a instalação ou não suporta instalação automática. \n\nVocê pode instalar manualmente clicando nos 'três pontinhos' do seu navegador e selecionando 'Instalar Aplicativo' ou 'Adicionar à tela de início'.");
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
@@ -195,19 +198,14 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
                 </p>
                 <button 
                   onClick={handleInstall}
-                  disabled={!deferredPrompt}
-                  className={`w-full sm:w-auto px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-[13px] transition-all flex items-center justify-center gap-3 shadow-lg ${
-                    deferredPrompt 
-                      ? 'bg-[#14213D] text-white hover:bg-black hover:-translate-y-1 active:scale-95' 
-                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                  }`}
+                  className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-[13px] transition-all flex items-center justify-center gap-3 shadow-lg bg-[#14213D] text-white hover:bg-[#1d2d50] hover:-translate-y-1 active:scale-95 shadow-[#14213D]/20 hover:shadow-amber-500/20"
                 >
                   <Download className="w-5 h-5" />
-                  {deferredPrompt ? 'Instalar Agora' : 'Aguardando sinal...'}
+                  Instalar Agora
                 </button>
                 {!deferredPrompt && (
                   <p className="text-[11px] text-amber-600 font-medium uppercase tracking-wider italic">
-                    * Se o botão não ativar, verifique se já instalou ou se o navegador suporta instalação.
+                    * Caso o botão não dispare a instalação, use a opção "Instalar" no menu do seu navegador.
                   </p>
                 )}
               </div>
