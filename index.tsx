@@ -24,3 +24,15 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.log('SW registration failed:', err));
   });
 }
+
+// Global variable to store the PWA install prompt
+(window as any).deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevent the mini-infobar from appearing on mobile
+  e.preventDefault();
+  // Stash the event so it can be triggered later.
+  (window as any).deferredPrompt = e;
+  // Dispatch a custom event to notify components
+  window.dispatchEvent(new CustomEvent('pwa-prompt-ready'));
+});

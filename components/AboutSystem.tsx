@@ -12,12 +12,16 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    const handler = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
+    const updatePrompt = () => {
+      setDeferredPrompt((window as any).deferredPrompt);
     };
 
-    window.addEventListener('beforeinstallprompt', handler);
+    // Initial check
+    if ((window as any).deferredPrompt) {
+      updatePrompt();
+    }
+
+    window.addEventListener('pwa-prompt-ready', updatePrompt);
 
     // iOS Detection
     const iosCheck = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
@@ -28,18 +32,27 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
       setIsInstalled(true);
     }
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('pwa-prompt-ready', updatePrompt);
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) {
+    const prompt = (window as any).deferredPrompt || deferredPrompt;
+    
+    if (!prompt) {
       alert("O seu navegador ainda está preparando a instalação ou não suporta instalação automática. \n\nVocê pode instalar manualmente clicando nos 'três pontinhos' do seu navegador e selecionando 'Instalar Aplicativo' ou 'Adicionar à tela de início'.");
       return;
     }
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
+    
+    try {
+      prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      if (outcome === 'accepted') {
+        (window as any).deferredPrompt = null;
+        setDeferredPrompt(null);
+      }
+    } catch (err) {
+      console.error('Erro ao tentar instalar:', err);
+      alert("Houve um erro ao tentar abrir a janela de instalação. Tente usar o menu do seu navegador.");
     }
   };
 
@@ -203,11 +216,6 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
                   <Download className="w-5 h-5" />
                   Instalar Agora
                 </button>
-                {!deferredPrompt && (
-                  <p className="text-[11px] text-amber-600 font-medium uppercase tracking-wider italic">
-                    * Caso o botão não dispare a instalação, use a opção "Instalar" no menu do seu navegador.
-                  </p>
-                )}
               </div>
             )}
           </section>
