@@ -1,14 +1,16 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend, LineChart, Line, AreaChart, Area 
 } from 'recharts';
 import { 
   TrendingUp, TrendingDown, Users, Package, BarChart3, 
-  Calendar, Filter, ChevronDown, Award, ArrowUpRight, ArrowDownRight
+  Calendar, Filter, ChevronDown, Award, ArrowUpRight, ArrowDownRight,
+  Database, CheckCircle2, AlertCircle, RefreshCw
 } from 'lucide-react';
 import { Movement, Product, Sector, Unit } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface DashboardProps {
   unit: Unit;

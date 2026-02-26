@@ -28,6 +28,7 @@ const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [configured, setConfigured] = useState(isConfigured());
+  const [dbStatus, setDbStatus] = useState<'checking' | 'online' | 'offline'>('checking');
 
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
     show: false,
@@ -139,6 +140,20 @@ const App: React.FC = () => {
       fetchData();
     }
   }, [configured, activeUnit, fetchData, isAuthorized]);
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const { error } = await supabase.from('products').select('id').limit(1);
+        if (error) throw error;
+        setDbStatus('online');
+      } catch (err) {
+        console.error('DB Connection error:', err);
+        setDbStatus('offline');
+      }
+    };
+    checkConnection();
+  }, [configured]);
 
   const openConfirm = (title: string, message: string, onConfirm: () => void | Promise<void>, confirmText?: string) => {
     setConfirmModal({ 
@@ -681,6 +696,10 @@ const App: React.FC = () => {
             <span className="text-[16px] font-semibold text-slate-800 uppercase flex items-center gap-2">Logística {loading && <Loader2 className="w-3 h-3 animate-spin text-slate-300" />}</span>
           </div>
           <div className="flex items-center gap-3 sm:gap-6">
+            <div className={`hidden sm:flex items-center gap-2 px-3 py-1 rounded-full border ${dbStatus === 'online' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : dbStatus === 'offline' ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400'} animate-in fade-in duration-700`}>
+              {dbStatus === 'online' ? <CheckCircle className="w-3 h-3" /> : dbStatus === 'offline' ? <AlertCircle className="w-3 h-3" /> : <RefreshCw className="w-3 h-3 animate-spin" />}
+              <span className="text-[10px] font-bold uppercase tracking-widest">{dbStatus === 'online' ? 'Banco de Dados' : dbStatus === 'offline' ? 'Banco de Dados' : 'Verificando...'}</span>
+            </div>
             <button onClick={fetchData} className="p-2 text-slate-400 hover:text-slate-600 transition-colors" title="Sincronizar dados"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
             <div className={`h-8 px-3 flex items-center justify-center text-white text-[11px] font-semibold ${theme.badgeBg}`}>{activeUnit.toUpperCase()}</div>
             <button onClick={() => setActiveUnit(null)} className="text-slate-400 hover:text-red-600 p-1" title="Sair da Unidade"><LogOut className="w-4 h-4" /></button>
