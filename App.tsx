@@ -684,9 +684,6 @@ const App: React.FC = () => {
             </button>
           ))}
         </nav>
-        <div className="p-8 border-t border-white/5 bg-black/5 text-center">
-          <a href="https://wa.me/5561981290099?text=Ol%C3%A1%20Mateus%2C%20tenho%20uma%20d%C3%BAvida%20quanto%20ao%20sistema%20de%20controle%20log%C3%ADstico." target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-[0.3em] font-normal text-white/20 hover:text-white/40 transition-colors block">Desenvolvido por Mateus Miranda</a>
-        </div>
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">

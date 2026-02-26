@@ -227,17 +227,26 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
             O Controle Logístico foi desenvolvido para ser uma ferramenta confiável de gestão. Com um banco de dados seguro e centralizado em Supabase, o sistema garante controle físico e financeiro dos materiais, oferecendo rastreabilidade, transparência e base sólida para decisões administrativas.
           </p>
           <div className="flex flex-col items-center justify-center gap-4 pt-4">
-            <p className="text-[11px] text-slate-400 uppercase tracking-widest font-medium">
-              Em caso de dúvidas, sugestões ou identificação de falhas, entre em contato com o desenvolvedor responsável,{' '}
-              <a 
-                href="https://wa.me/5561981290099" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-amber-600 hover:underline"
-              >
-                Mateus Miranda
-              </a>
+          <div className="bg-amber-50 border border-amber-100 p-6 rounded-xl space-y-4">
+            <div className="flex items-center gap-3 text-amber-800">
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <Info className="w-5 h-5" />
+              </div>
+              <h4 className="text-[14px] font-bold uppercase tracking-widest">Suporte & Desenvolvimento</h4>
+            </div>
+            <p className="text-[13px] text-amber-900/70 leading-relaxed">
+              Em caso de dúvidas, sugestões ou identificação de falhas, entre em contato diretamente com o desenvolvedor responsável:
             </p>
+            <a 
+              href="https://wa.me/5561981290099?text=Ol%C3%A1%20Mateus%2C%20tenho%20uma%20d%C3%BAvida%20quanto%20ao%20sistema%20de%20controle%20log%C3%ADstico." 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 bg-[#14213D] text-white px-6 py-3 rounded-lg font-bold uppercase tracking-widest text-[11px] hover:bg-black transition-all shadow-md hover:shadow-lg"
+            >
+              <Smartphone className="w-4 h-4" />
+              Falar com Mateus Miranda
+            </a>
+          </div>
             <div className="flex items-center gap-4">
               <div className="h-px w-12 bg-slate-200"></div>
               <div className="h-px w-12 bg-slate-200"></div>
