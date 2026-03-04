@@ -138,25 +138,43 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
             }
           }
 
-          setLoadingStatus('Analisando com IA...');
+          setLoadingStatus('Processando dados...');
           console.log("Enviando para Gemini...");
           const data = await extractInvoiceData(base64, file.type.startsWith('image/') ? 'image/jpeg' : file.type);
-          setLoadingStatus('Concluído!');
+          setLoadingStatus('Finalizando...');
           console.log("Resposta do Gemini recebida", data);
           
           if (!data || !data.items || data.items.length === 0) {
             throw new Error("Nenhum item encontrado na nota fiscal.");
           }
 
-          setExtractedData(data);
+          // Sanitização dos dados para evitar quebras de renderização (Tela Branca)
+          const sanitizedData: ExtractedInvoice = {
+            ...data,
+            totalValue: Number(data.totalValue) || 0,
+            items: Array.isArray(data.items) ? data.items.map(item => ({
+              ...item,
+              name: item.name || 'Item sem nome',
+              quantity: Number(item.quantity) || 0,
+              unitPrice: Number(item.unitPrice) || 0,
+              totalPrice: Number(item.totalPrice) || 0
+            })) : []
+          };
+
+          setExtractedData(sanitizedData);
           
-          // Tentar mapear automaticamente por nome
+          // Tentar mapear automaticamente por nome com proteção contra nulos
           const initialMappings: Record<number, string> = {};
-          data.items.forEach((item, index) => {
-            const match = products.find(p => 
-              p.name.toLowerCase().includes(item.name.toLowerCase()) || 
-              item.name.toLowerCase().includes(p.name.toLowerCase())
-            );
+          sanitizedData.items.forEach((item, index) => {
+            if (!item || !item.name) return;
+            
+            const itemNameLower = item.name.toLowerCase();
+            const match = products.find(p => {
+              if (!p.name) return false;
+              const prodNameLower = p.name.toLowerCase();
+              return prodNameLower.includes(itemNameLower) || itemNameLower.includes(prodNameLower);
+            });
+            
             if (match) initialMappings[index] = match.id;
           });
           setMappings(initialMappings);
@@ -182,26 +200,31 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
   const handleConfirm = () => {
     if (!extractedData) return;
 
-    const itemsToConfirm = extractedData.items
-      .map((item, index) => ({
-        productId: mappings[index],
-        quantity: item.quantity,
-        unitPrice: item.unitPrice
-      }))
-      .filter(item => item.productId);
+    try {
+      const itemsToConfirm = extractedData.items
+        .map((item, index) => ({
+          productId: mappings[index],
+          quantity: item.quantity,
+          unitPrice: item.unitPrice
+        }))
+        .filter(item => item.productId);
 
-    if (itemsToConfirm.length === 0) {
-      showToast("Selecione os produtos correspondentes no sistema.", "error");
-      return;
+      if (itemsToConfirm.length === 0) {
+        showToast("Selecione os produtos correspondentes no sistema.", "error");
+        return;
+      }
+
+      onItemsExtracted(itemsToConfirm as { productId: string, quantity: number, unitPrice: number }[]);
+      onClose();
+    } catch (err) {
+      console.error("Erro ao confirmar itens:", err);
+      showToast("Erro ao processar os itens selecionados.", "error");
     }
-
-    onItemsExtracted(itemsToConfirm as { productId: string, quantity: number, unitPrice: number }[]);
-    onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl rounded-none border border-slate-200">
+    <div className="fixed inset-0 z-[400] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-white w-full max-w-4xl max-h-[96vh] sm:max-h-[90vh] overflow-hidden flex flex-col shadow-2xl rounded-none border border-slate-200">
         {/* Header */}
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <div className="flex items-center gap-3">
@@ -294,8 +317,8 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
                   <AlertCircle className="w-4 h-4" /> Vincular Itens ao Estoque
                 </h4>
                 
-                <div className="border border-slate-200 overflow-hidden">
-                  <table className="w-full text-left border-collapse">
+                <div className="border border-slate-200 overflow-x-auto custom-scrollbar">
+                  <table className="w-full text-left border-collapse min-w-[600px] sm:min-w-0">
                     <thead className="bg-slate-50 border-b border-slate-200">
                       <tr>
                         <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Item na Nota</th>
@@ -317,9 +340,10 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
                                   type="number" 
                                   value={item.quantity}
                                   onChange={(e) => {
-                                    const newData = { ...extractedData };
-                                    newData.items[index].quantity = Number(e.target.value);
-                                    setExtractedData(newData);
+                                    if (!extractedData) return;
+                                    const newItems = [...extractedData.items];
+                                    newItems[index] = { ...newItems[index], quantity: Number(e.target.value) || 0 };
+                                    setExtractedData({ ...extractedData, items: newItems });
                                   }}
                                   className="w-16 text-[11px] font-bold text-emerald-600 border border-slate-200 p-1 outline-none focus:border-emerald-500"
                                 />
@@ -331,9 +355,10 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
                                   step="0.01"
                                   value={item.unitPrice}
                                   onChange={(e) => {
-                                    const newData = { ...extractedData };
-                                    newData.items[index].unitPrice = Number(e.target.value);
-                                    setExtractedData(newData);
+                                    if (!extractedData) return;
+                                    const newItems = [...extractedData.items];
+                                    newItems[index] = { ...newItems[index], unitPrice: Number(e.target.value) || 0 };
+                                    setExtractedData({ ...extractedData, items: newItems });
                                   }}
                                   className="w-20 text-[11px] text-slate-600 border border-slate-200 p-1 outline-none focus:border-emerald-500"
                                 />

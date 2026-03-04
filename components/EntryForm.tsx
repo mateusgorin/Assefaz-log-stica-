@@ -38,12 +38,20 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
     const newBatchItems = [...batchItems];
     
     items.forEach(newItem => {
+      // Garantir que os valores são números válidos
+      const safeQuantity = Number(newItem.quantity) || 0;
+      const safeUnitPrice = Number(newItem.unitPrice) || 0;
+
       const existingIndex = newBatchItems.findIndex(item => item.productId === newItem.productId);
       if (existingIndex >= 0) {
-        newBatchItems[existingIndex].quantity += newItem.quantity;
-        newBatchItems[existingIndex].unitPrice = newItem.unitPrice;
+        newBatchItems[existingIndex].quantity += safeQuantity;
+        newBatchItems[existingIndex].unitPrice = safeUnitPrice;
       } else {
-        newBatchItems.push(newItem);
+        newBatchItems.push({
+          productId: newItem.productId,
+          quantity: safeQuantity,
+          unitPrice: safeUnitPrice
+        });
       }
     });
     
