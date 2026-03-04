@@ -35,38 +35,61 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
     }
   };
 
-  const resizeImage = (base64Str: string): Promise<string> => {
+  const resizeImage = (base64Str: string, mimeType: string): Promise<string> => {
     return new Promise((resolve) => {
       const img = new Image();
-      img.src = `data:image/jpeg;base64,${base64Str}`;
+      
+      // Timeout de segurança para não travar o processo
+      const timeout = setTimeout(() => {
+        console.warn("Timeout no redimensionamento, usando original.");
+        resolve(base64Str);
+      }, 5000);
+
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 1200;
-        const MAX_HEIGHT = 1200;
-        let width = img.width;
-        let height = img.height;
+        clearTimeout(timeout);
+        try {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
 
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
           }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(base64Str);
+            return;
           }
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+          resolve(resizedBase64);
+        } catch (err) {
+          console.error("Erro ao processar canvas:", err);
+          resolve(base64Str);
         }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-        
-        // Compress to JPEG with 0.7 quality
-        const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
-        resolve(resizedBase64);
       };
+
+      img.onerror = () => {
+        clearTimeout(timeout);
+        console.error("Erro ao carregar imagem para redimensionar.");
+        resolve(base64Str);
+      };
+
+      img.src = `data:${mimeType};base64,${base64Str}`;
     });
   };
 
@@ -74,6 +97,7 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
     const file = e.target.files?.[0];
     if (!file) return;
 
+    console.log("Arquivo selecionado:", file.name, file.type);
     startLoading();
     setExtractedData(null);
     setMappings({});
@@ -82,14 +106,18 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
       const reader = new FileReader();
       reader.onload = async () => {
         try {
+          console.log("Leitura do arquivo concluída");
           let base64 = (reader.result as string).split(',')[1];
           
-          // Se for imagem, redimensionar para melhorar performance
           if (file.type.startsWith('image/')) {
-            base64 = await resizeImage(base64);
+            console.log("Iniciando redimensionamento...");
+            base64 = await resizeImage(base64, file.type);
+            console.log("Redimensionamento concluído");
           }
 
+          console.log("Enviando para Gemini...");
           const data = await extractInvoiceData(base64, file.type.startsWith('image/') ? 'image/jpeg' : file.type);
+          console.log("Resposta do Gemini recebida");
           
           if (!data || !data.items || data.items.length === 0) {
             throw new Error("Nenhum item encontrado na nota fiscal.");
