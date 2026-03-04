@@ -142,9 +142,9 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
         </div>
         <button 
           onClick={() => setShowScanner(true)}
-          className="flex items-center gap-2 bg-amber-500 text-white px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest hover:bg-amber-600 transition-all shadow-md hover:shadow-lg"
+          className="flex items-center gap-3 bg-amber-500 text-white px-6 py-3 text-[12px] font-bold uppercase tracking-widest hover:bg-amber-600 transition-all shadow-md hover:shadow-lg"
         >
-          <ScanLine className="w-4 h-4" /> Importar Nota Fiscal
+          <ScanLine className="w-5 h-5" /> Importar Nota Fiscal
         </button>
       </header>
 
