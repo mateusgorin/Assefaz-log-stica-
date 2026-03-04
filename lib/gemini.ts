@@ -35,10 +35,10 @@ export interface ExtractedInvoice {
 }
 
 export async function extractInvoiceData(fileBase64: string, mimeType: string): Promise<ExtractedInvoice> {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-2.5-flash";
   const ai = getAi();
   
-  console.log("Iniciando extração de dados com Gemini...");
+  console.log(`Iniciando extração de dados com ${model}...`);
 
   const prompt = `Analyze this Invoice image or PDF. 
   Extract all purchased items into a list of objects.
@@ -90,6 +90,8 @@ export async function extractInvoiceData(fileBase64: string, mimeType: string): 
     let userMessage = "Erro na IA: ";
     if (apiError.message?.includes("429")) {
       userMessage = "Limite de uso da IA excedido. Aguarde 60 segundos.";
+    } else if (apiError.message?.includes("503")) {
+      userMessage = "O Google está com alta demanda agora. Tente novamente em alguns segundos.";
     } else if (apiError.message?.includes("403") || apiError.message?.includes("401")) {
       userMessage = "Chave da IA inválida ou sem permissão.";
     } else if (apiError.message?.includes("500")) {
