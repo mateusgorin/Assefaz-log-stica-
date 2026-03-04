@@ -12,43 +12,117 @@ interface InvoiceScannerProps {
 
 const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtracted, onClose, showToast }) => {
   const [loading, setLoading] = useState(false);
+  const [loadingTime, setLoadingTime] = useState(0);
   const [extractedData, setExtractedData] = useState<ExtractedInvoice | null>(null);
   const [mappings, setMappings] = useState<Record<number, string>>({}); // index -> productId
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const loadingInterval = useRef<any>(null);
+
+  const startLoading = () => {
+    setLoading(true);
+    setLoadingTime(0);
+    loadingInterval.current = setInterval(() => {
+      setLoadingTime(prev => prev + 1);
+    }, 1000);
+  };
+
+  const stopLoading = () => {
+    setLoading(false);
+    if (loadingInterval.current) {
+      clearInterval(loadingInterval.current);
+      loadingInterval.current = null;
+    }
+  };
+
+  const resizeImage = (base64Str: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = `data:image/jpeg;base64,${base64Str}`;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Compress to JPEG with 0.7 quality
+        const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+        resolve(resizedBase64);
+      };
+    });
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setLoading(true);
+    startLoading();
     setExtractedData(null);
     setMappings({});
 
     try {
       const reader = new FileReader();
       reader.onload = async () => {
-        const base64 = (reader.result as string).split(',')[1];
-        const data = await extractInvoiceData(base64, file.type);
-        setExtractedData(data);
-        
-        // Tentar mapear automaticamente por nome
-        const initialMappings: Record<number, string> = {};
-        data.items.forEach((item, index) => {
-          const match = products.find(p => 
-            p.name.toLowerCase().includes(item.name.toLowerCase()) || 
-            item.name.toLowerCase().includes(p.name.toLowerCase())
-          );
-          if (match) initialMappings[index] = match.id;
-        });
-        setMappings(initialMappings);
-        setLoading(false);
+        try {
+          let base64 = (reader.result as string).split(',')[1];
+          
+          // Se for imagem, redimensionar para melhorar performance
+          if (file.type.startsWith('image/')) {
+            base64 = await resizeImage(base64);
+          }
+
+          const data = await extractInvoiceData(base64, file.type.startsWith('image/') ? 'image/jpeg' : file.type);
+          
+          if (!data || !data.items || data.items.length === 0) {
+            throw new Error("Nenhum item encontrado na nota fiscal.");
+          }
+
+          setExtractedData(data);
+          
+          // Tentar mapear automaticamente por nome
+          const initialMappings: Record<number, string> = {};
+          data.items.forEach((item, index) => {
+            const match = products.find(p => 
+              p.name.toLowerCase().includes(item.name.toLowerCase()) || 
+              item.name.toLowerCase().includes(p.name.toLowerCase())
+            );
+            if (match) initialMappings[index] = match.id;
+          });
+          setMappings(initialMappings);
+        } catch (error: any) {
+          console.error("Erro no processamento da nota:", error);
+          showToast(error.message || "Erro ao processar nota fiscal. Verifique a imagem e tente novamente.", "error");
+        } finally {
+          stopLoading();
+        }
+      };
+      reader.onerror = () => {
+        showToast("Erro ao ler arquivo.", "error");
+        stopLoading();
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error(error);
+      console.error("Erro ao iniciar leitura do arquivo:", error);
       showToast("Erro ao processar nota fiscal. Tente novamente.", "error");
-      setLoading(false);
+      stopLoading();
     }
   };
 
@@ -136,6 +210,15 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
               <div className="text-center">
                 <p className="text-[14px] font-bold uppercase tracking-widest text-slate-700">Processando Nota Fiscal...</p>
                 <p className="text-[11px] text-slate-400 uppercase tracking-widest animate-pulse">A Inteligência Artificial está lendo os dados</p>
+                
+                {loadingTime > 15 && (
+                  <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-lg animate-in fade-in slide-in-from-top-2">
+                    <p className="text-[10px] text-amber-700 font-bold uppercase tracking-widest leading-tight">
+                      Isso está demorando mais que o normal.<br/>
+                      Verifique sua conexão ou tente uma foto mais nítida.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
