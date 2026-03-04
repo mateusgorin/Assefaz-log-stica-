@@ -140,15 +140,15 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
                 </p>
                 <div className="grid grid-cols-1 gap-3">
                   <div className="bg-white/50 p-3 rounded border border-emerald-100">
-                    <p className="text-[12px] text-emerald-900 font-bold uppercase mb-1">Como funciona:</p>
-                    <p className="text-[12px] text-emerald-800">Toda vez que você vincula manualmente um item da nota a um produto do sistema e confirma a importação, o sistema grava essa associação.</p>
+                    <p className="text-[13px] text-emerald-900 font-bold uppercase mb-1">Como funciona:</p>
+                    <p className="text-[13px] text-emerald-800">Toda vez que você vincula manualmente um item da nota a um produto do sistema e confirma a importação, o sistema grava essa associação.</p>
                   </div>
                   <div className="bg-white/50 p-3 rounded border border-emerald-100">
-                    <p className="text-[12px] text-emerald-900 font-bold uppercase mb-1">Automatização:</p>
-                    <p className="text-[12px] text-emerald-800">Na próxima vez que você ler uma nota que contenha esse mesmo item, a IA irá vincular o produto automaticamente para você, sem que você precise selecionar nada.</p>
+                    <p className="text-[13px] text-emerald-900 font-bold uppercase mb-1">Automatização:</p>
+                    <p className="text-[13px] text-emerald-800">Na próxima vez que você ler uma nota que contenha esse mesmo item, a IA irá vincular o produto automaticamente para você, sem que você precise selecionar nada.</p>
                   </div>
                 </div>
-                <p className="text-[12px] text-emerald-700 italic">
+                <p className="text-[13px] text-emerald-700 italic">
                   * Procure pelo selo <span className="font-bold text-emerald-600">"IA com Aprendizado Ativo"</span> no topo da lista para identificar que o sistema está usando o histórico para te ajudar.
                 </p>
               </div>
@@ -262,7 +262,7 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
               </div>
               <h4 className="text-[14px] font-bold uppercase tracking-widest">Suporte & Desenvolvimento</h4>
             </div>
-            <p className="text-[13px] text-amber-900/70 leading-relaxed">
+            <p className="text-[14px] text-amber-900/70 leading-relaxed">
               Em caso de dúvidas, sugestões ou identificação de falhas, entre em contato diretamente com o desenvolvedor responsável:
             </p>
             <a 
