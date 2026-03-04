@@ -640,8 +640,7 @@ const App: React.FC = () => {
       )}
 
       {confirmModal.isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeConfirm} />
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
           <div className={`relative bg-white w-full max-w-sm p-8 shadow-2xl border-t-8 ${confirmModal.isSuccess ? 'border-green-500' : theme.confirmBorder} animate-in zoom-in duration-200`}>
             {!confirmModal.isSuccess && (
               <button onClick={closeConfirm} className="absolute top-4 right-4 text-slate-300 hover:text-slate-600 transition-colors">
@@ -679,7 +678,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {sidebarOpen && <div className="fixed inset-0 bg-black/60 z-[60] lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />}
+      {sidebarOpen && <div className="fixed inset-0 bg-black/80 z-[60] lg:hidden backdrop-blur-md animate-in fade-in duration-300" onClick={() => setSidebarOpen(false)} />}
 
       <aside className={`fixed lg:static inset-y-0 left-0 z-[70] w-72 ${theme.menuBg} text-white flex flex-col transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300`}>
         <div className="p-8 border-b border-white/5">

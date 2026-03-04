@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Camera, FileText, Loader2, X, Check, AlertCircle, Upload, Smartphone } from 'lucide-react';
 import { extractInvoiceData, ExtractedInvoice, ExtractedInvoiceItem } from '../lib/gemini';
 import { Product } from '../types';
@@ -19,6 +20,26 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const loadingInterval = useRef<any>(null);
+
+  // Sistema de Aprendizado: Carrega mapeamentos salvos anteriormente
+  const getSavedMappings = (): Record<string, string> => {
+    try {
+      const saved = localStorage.getItem('invoice_product_mappings');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  };
+
+  const saveMapping = (invoiceItemName: string, productId: string) => {
+    try {
+      const current = getSavedMappings();
+      current[invoiceItemName.toLowerCase().trim()] = productId;
+      localStorage.setItem('invoice_product_mappings', JSON.stringify(current));
+    } catch (err) {
+      console.error("Erro ao salvar aprendizado:", err);
+    }
+  };
 
   const startLoading = () => {
     setLoading(true);
@@ -163,12 +184,23 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
 
           setExtractedData(sanitizedData);
           
-          // Tentar mapear automaticamente por nome com proteção contra nulos
+          // Tentar mapear automaticamente
           const initialMappings: Record<number, string> = {};
+          const learnedMappings = getSavedMappings();
+
           sanitizedData.items.forEach((item, index) => {
             if (!item || !item.name) return;
             
-            const itemNameLower = item.name.toLowerCase();
+            const itemNameLower = item.name.toLowerCase().trim();
+            
+            // 1. Tenta pelo aprendizado prévio (Exato)
+            if (learnedMappings[itemNameLower]) {
+              initialMappings[index] = learnedMappings[itemNameLower];
+              console.log(`Aprendizado aplicado para: ${item.name}`);
+              return;
+            }
+
+            // 2. Fallback: Busca por similaridade de nome
             const match = products.find(p => {
               if (!p.name) return false;
               const prodNameLower = p.name.toLowerCase();
@@ -202,11 +234,18 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
 
     try {
       const itemsToConfirm = extractedData.items
-        .map((item, index) => ({
-          productId: mappings[index],
-          quantity: item.quantity,
-          unitPrice: item.unitPrice
-        }))
+        .map((item, index) => {
+          const productId = mappings[index];
+          // Se o usuário vinculou manualmente ou confirmou, salva no "aprendizado"
+          if (productId && item.name) {
+            saveMapping(item.name, productId);
+          }
+          return {
+            productId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice
+          };
+        })
         .filter(item => item.productId);
 
       if (itemsToConfirm.length === 0) {
@@ -222,8 +261,8 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[400] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
       <div className="bg-white w-full max-w-4xl max-h-[96vh] sm:max-h-[90vh] overflow-hidden flex flex-col shadow-2xl rounded-none border border-slate-200">
         {/* Header */}
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
@@ -313,16 +352,22 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
               </div>
 
               <div className="space-y-4">
-                <h4 className="text-[12px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4" /> Vincular Itens ao Estoque
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[12px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" /> Vincular Itens ao Estoque
+                  </h4>
+                  <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 font-bold uppercase tracking-tighter rounded">
+                    IA com Aprendizado Ativo
+                  </span>
+                </div>
                 
-                <div className="border border-slate-200 overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-left border-collapse min-w-[600px] sm:min-w-0">
+                {/* Desktop Table View */}
+                <div className="hidden md:block border border-slate-200 overflow-x-auto custom-scrollbar">
+                  <table className="w-full text-left border-collapse">
                     <thead className="bg-slate-50 border-b border-slate-200">
                       <tr>
                         <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Item na Nota</th>
-                        <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Qtd / Valor</th>
+                        <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 w-48">Qtd / Valor</th>
                         <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">Produto no Sistema</th>
                       </tr>
                     </thead>
@@ -382,6 +427,64 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
                     </tbody>
                   </table>
                 </div>
+
+                {/* Mobile Card View (No Horizontal Scroll) */}
+                <div className="md:hidden space-y-4">
+                  {extractedData.items.map((item, index) => (
+                    <div key={index} className={`p-4 border rounded-none transition-all ${mappings[index] ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200 bg-white'}`}>
+                      <div className="mb-3">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Item na Nota</span>
+                        <p className="text-[12px] font-bold text-slate-800 uppercase leading-tight">{item.name}</p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="space-y-1">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Quantidade</span>
+                          <input 
+                            type="number" 
+                            value={item.quantity}
+                            onChange={(e) => {
+                              if (!extractedData) return;
+                              const newItems = [...extractedData.items];
+                              newItems[index] = { ...newItems[index], quantity: Number(e.target.value) || 0 };
+                              setExtractedData({ ...extractedData, items: newItems });
+                            }}
+                            className="w-full text-[12px] font-bold text-emerald-600 border border-slate-200 p-2 outline-none focus:border-emerald-500 bg-white"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Preço Unitário</span>
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            value={item.unitPrice}
+                            onChange={(e) => {
+                              if (!extractedData) return;
+                              const newItems = [...extractedData.items];
+                              newItems[index] = { ...newItems[index], unitPrice: Number(e.target.value) || 0 };
+                              setExtractedData({ ...extractedData, items: newItems });
+                            }}
+                            className="w-full text-[12px] text-slate-600 border border-slate-200 p-2 outline-none focus:border-emerald-500 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Vincular ao Sistema</span>
+                        <select 
+                          value={mappings[index] || ''} 
+                          onChange={(e) => setMappings(prev => ({ ...prev, [index]: e.target.value }))}
+                          className={`w-full text-[11px] p-3 border outline-none transition-all ${mappings[index] ? 'border-emerald-500 bg-white text-emerald-700 font-bold' : 'border-slate-300 text-slate-500 bg-slate-50'}`}
+                        >
+                          <option value="">Selecione o produto...</option>
+                          {products.filter(p => p.active !== false).sort((a,b) => a.name.localeCompare(b.name)).map(p => (
+                            <option key={p.id} value={p.id}>{p.name.toUpperCase()}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -413,7 +516,8 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

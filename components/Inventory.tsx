@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, Boxes, AlertCircle, Filter, ChevronDown, Edit2, X, Check, Loader2 } from 'lucide-react';
 import { Product, Unit } from '../types';
 
@@ -55,9 +56,8 @@ const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock, sh
   return (
     <div className="space-y-6 sm:space-y-10">
       {/* MODAL DE AJUSTE DE ESTOQUE */}
-      {editingProduct && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => !isSaving && setEditingProduct(null)} />
+      {editingProduct && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
           <div className={`relative bg-white w-full max-w-sm p-8 shadow-2xl border-t-8 ${theme.border} animate-in zoom-in duration-200`}>
             <button 
               onClick={() => setEditingProduct(null)} 
@@ -113,7 +113,8 @@ const Inventory: React.FC<InventoryProps> = ({ unit, products, onUpdateStock, sh
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <header className="border-b border-slate-200 pb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">

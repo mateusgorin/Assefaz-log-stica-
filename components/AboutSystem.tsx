@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Info, Database, Shield, Zap, FileText, Layout, Smartphone, CheckCircle2, Building2, Download, Share, PlusSquare } from 'lucide-react';
 
 interface AboutSystemProps {
@@ -259,10 +260,11 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
   );
 
   if (isModal) {
-    return (
-      <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+    return createPortal(
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
         {content}
-      </div>
+      </div>,
+      document.body
     );
   }
 
