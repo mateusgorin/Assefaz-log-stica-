@@ -106,7 +106,7 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
       || (import.meta as any).env?.GEMINI_API_KEY;
     
     if (!apiKey) {
-      showToast("Configuração do sistema incompleta: Chave da IA não encontrada. No Vercel, use o nome VITE_GEMINI_API_KEY.", "error");
+      showToast("ERRO DE CONFIGURAÇÃO: A chave da IA não foi encontrada. No painel do Vercel, você PRECISA renomear a variável para VITE_GEMINI_API_KEY e fazer um novo Deploy.", "error");
       return;
     }
 

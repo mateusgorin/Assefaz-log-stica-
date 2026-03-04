@@ -65,29 +65,6 @@ export async function extractInvoiceData(fileBase64: string, mimeType: string): 
       ],
       config: {
         responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            items: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  name: { type: Type.STRING },
-                  quantity: { type: Type.NUMBER },
-                  unitPrice: { type: Type.NUMBER },
-                  totalPrice: { type: Type.NUMBER }
-                },
-                required: ["name", "quantity", "unitPrice", "totalPrice"]
-              }
-            },
-            totalValue: { type: Type.NUMBER },
-            invoiceNumber: { type: Type.STRING },
-            date: { type: Type.STRING },
-            vendorName: { type: Type.STRING }
-          },
-          required: ["items", "totalValue"]
-        }
       }
     });
 
@@ -96,20 +73,31 @@ export async function extractInvoiceData(fileBase64: string, mimeType: string): 
     
     if (!text) {
       console.error("Resposta do Gemini vazia.");
-      throw new Error("A Inteligência Artificial não conseguiu ler os dados da imagem. Tente uma foto mais nítida.");
+      throw new Error("A Inteligência Artificial não retornou dados. Tente uma foto mais nítida.");
     }
     
     try {
-      return JSON.parse(text) as ExtractedInvoice;
+      // Limpa possíveis marcações de markdown do JSON
+      const cleanJson = text.replace(/```json|```/g, "").trim();
+      return JSON.parse(cleanJson) as ExtractedInvoice;
     } catch (parseError) {
       console.error("Erro ao parsear JSON do Gemini:", text);
-      throw new Error("Erro ao processar os dados lidos. Tente novamente.");
+      throw new Error("Erro ao processar os dados lidos pela IA.");
     }
   } catch (apiError: any) {
-    console.error("Erro na API do Gemini:", apiError);
-    if (apiError.message?.includes("API key")) {
-      throw new Error("Configuração de API inválida. Contate o administrador.");
+    console.error("Erro detalhado na API do Gemini:", apiError);
+    
+    let userMessage = "Erro na IA: ";
+    if (apiError.message?.includes("429")) {
+      userMessage = "Limite de uso da IA excedido. Aguarde 60 segundos.";
+    } else if (apiError.message?.includes("403") || apiError.message?.includes("401")) {
+      userMessage = "Chave da IA inválida ou sem permissão.";
+    } else if (apiError.message?.includes("500")) {
+      userMessage = "O servidor do Google falhou. Tente novamente.";
+    } else {
+      userMessage += apiError.message || "Erro desconhecido";
     }
-    throw new Error("A IA demorou muito para responder ou encontrou um erro. Tente novamente com uma imagem menor ou mais nítida.");
+    
+    throw new Error(userMessage);
   }
 }

@@ -45,7 +45,9 @@ const App: React.FC = () => {
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ show: true, message, type });
-    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 2000);
+    // Erros ficam 5 segundos, sucessos 2 segundos
+    const duration = type === 'error' ? 5000 : 2000;
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), duration);
   };
 
   const [confirmModal, setConfirmModal] = useState<{
