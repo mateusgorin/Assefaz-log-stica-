@@ -128,7 +128,33 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
               Sempre que um usuário realiza uma ação, o sistema grava automaticamente essa informação no banco de dados e atualiza os estoques em tempo real. Isso garante que <span className="font-bold">Sede e 506</span> visualizem dados consistentes, confiáveis e sincronizados.
             </p>
             <p>
-              Além do controle físico dos materiais, o sistema permite a <span className="font-bold text-emerald-600">leitura automática de Notas Fiscais</span> (PDF ou Foto) utilizando Inteligência Artificial. O sistema extrai automaticamente produtos, quantidades e valores, permitindo acompanhar não apenas o estoque, mas também o custo real dos materiais de forma automatizada, com possibilidade de conferência e edição manual.
+              Além do controle físico dos materiais, o sistema conta com uma potente camada de <span className="font-bold text-emerald-600">Inteligência Artificial</span> para a leitura automática de Notas Fiscais (PDF ou Foto). 
+            </p>
+            <div className="bg-emerald-50 border-l-4 border-emerald-500 p-6 space-y-4">
+              <h3 className="text-[14px] font-bold text-emerald-900 uppercase tracking-widest flex items-center gap-2">
+                <Zap className="w-4 h-4" /> Sistema de Aprendizado de IA (Auto-Vinculação)
+              </h3>
+              <div className="space-y-3">
+                <p className="text-[13px] text-emerald-800 leading-relaxed">
+                  Implementamos um mecanismo de <span className="font-bold">"memória"</span> para o sistema. Agora, a plataforma aprende com as suas ações para tornar o trabalho cada vez mais automático.
+                </p>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="bg-white/50 p-3 rounded border border-emerald-100">
+                    <p className="text-[12px] text-emerald-900 font-bold uppercase mb-1">Como funciona:</p>
+                    <p className="text-[12px] text-emerald-800">Toda vez que você vincula manualmente um item da nota a um produto do sistema e confirma a importação, o sistema grava essa associação.</p>
+                  </div>
+                  <div className="bg-white/50 p-3 rounded border border-emerald-100">
+                    <p className="text-[12px] text-emerald-900 font-bold uppercase mb-1">Automatização:</p>
+                    <p className="text-[12px] text-emerald-800">Na próxima vez que você ler uma nota que contenha esse mesmo item, a IA irá vincular o produto automaticamente para você, sem que você precise selecionar nada.</p>
+                  </div>
+                </div>
+                <p className="text-[12px] text-emerald-700 italic">
+                  * Procure pelo selo <span className="font-bold text-emerald-600">"IA com Aprendizado Ativo"</span> no topo da lista para identificar que o sistema está usando o histórico para te ajudar.
+                </p>
+              </div>
+            </div>
+            <p>
+              O sistema extrai automaticamente produtos, quantidades e valores, permitindo acompanhar não apenas o estoque, mas também o custo real dos materiais de forma automatizada, com total liberdade para conferência e edição manual antes da gravação final.
             </p>
             <div className="bg-amber-50 border-l-4 border-amber-500 p-6 space-y-4">
               <p className="font-medium text-amber-900">
@@ -155,7 +181,7 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
             {[
               { icon: <Layout className="w-5 h-5" />, text: "Gestão centralizada de múltiplas unidades (Sede e 506)" },
               { icon: <Shield className="w-5 h-5" />, text: "Acesso protegido por usuário e senha" },
-              { icon: <Zap className="w-5 h-5" />, text: "Leitura automática de Notas Fiscais via IA (PDF ou Foto)" },
+              { icon: <Zap className="w-5 h-5 text-amber-500" />, text: "Importação Inteligente: IA que lê e processa Notas Fiscais" },
               { icon: <Zap className="w-5 h-5" />, text: "Dashboard com visão geral e alertas de estoque baixo" },
               { icon: <Layout className="w-5 h-5" />, text: "Registro de saídas em lote, otimizando o processo" },
               { icon: <CheckCircle2 className="w-5 h-5" />, text: "Assinatura digital do retirante e do responsável" },
