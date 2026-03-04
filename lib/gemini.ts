@@ -40,12 +40,24 @@ export async function extractInvoiceData(fileBase64: string, mimeType: string): 
   
   console.log(`Iniciando extração de dados com ${model}...`);
 
-  const prompt = `Analyze this Invoice image or PDF. 
-  Extract all purchased items into a list of objects.
-  Each object must have: "name" (simplified product name), "quantity" (number), "unitPrice" (number), and "totalPrice" (number).
-  Also extract: "totalValue" (total invoice amount), "invoiceNumber", "date", and "vendorName".
+  const prompt = `Você é um especialista em leitura de Notas Fiscais Brasileiras (DANFE).
+  Analise a imagem da nota fiscal e extraia os dados para JSON.
   
-  Return ONLY the JSON matching the requested schema.`;
+  Para cada item na tabela "DADOS DO PRODUTO/SERVIÇOS", extraia:
+  - "name": Descrição do produto (ex: "AGUA SANITARIA FACILITA").
+  - "quantity": Coluna "QTD".
+  - "unitPrice": Coluna "V. UN." ou "VALOR UNITÁRIO".
+  - "totalPrice": Coluna "V. TOTAL" ou "VALOR TOTAL".
+  
+  Também extraia os dados gerais:
+  - "totalValue": Valor total da nota (geralmente no campo "VALOR TOTAL DA NOTA").
+  - "invoiceNumber": Número da nota (campo "Nº").
+  - "date": Data de emissão.
+  - "vendorName": Nome/Razão Social do emitente (ex: "Alvorada Distribuidora").
+
+  Importante:
+  1. Certifique-se de ler TODOS os itens da lista.
+  2. Retorne APENAS o JSON puro, sem explicações.`;
 
   try {
     const response = await ai.models.generateContent({
