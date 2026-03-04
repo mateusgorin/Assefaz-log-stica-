@@ -10,6 +10,12 @@ if (!rootElement) {
 }
 
 const root = ReactDOM.createRoot(rootElement);
+
+// Global error handler for production debugging
+window.onerror = (message, source, lineno, colno, error) => {
+  console.error("Global Error:", { message, source, lineno, colno, error });
+};
+
 root.render(
   <React.StrictMode>
     <App />

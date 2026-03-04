@@ -13,11 +13,18 @@ import Inventory from './components/Inventory';
 import AboutSystem from './components/AboutSystem';
 import { LogOut, Menu, Building2, Loader2, RefreshCw, AlertTriangle, Trash2, X, MapPin, Building, Lock, ArrowRight, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
-// SENHA DE ACESSO DO SISTEMA ATUALIZADA
-const ACCESS_PASSCODE = (import.meta as any).env.VITE_ACCESS_PASSCODE || "Assefaz89";
+// SENHA DE ACESSO DO SISTEMA
+const ACCESS_PASSCODE = import.meta.env.VITE_ACCESS_PASSCODE || "Assefaz89";
 
 const App: React.FC = () => {
-  const [isAuthorized, setIsAuthorized] = useState(() => localStorage.getItem('assefaz_auth') === 'true');
+  const [isAuthorized, setIsAuthorized] = useState(() => {
+    try {
+      return localStorage.getItem('assefaz_auth') === 'true';
+    } catch (e) {
+      console.warn("LocalStorage access failed:", e);
+      return false;
+    }
+  });
   const [passcodeInput, setPasscodeInput] = useState('');
   const [passError, setPassError] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
@@ -59,7 +66,11 @@ const App: React.FC = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (passcodeInput === ACCESS_PASSCODE) {
-      localStorage.setItem('assefaz_auth', 'true');
+      try {
+        localStorage.setItem('assefaz_auth', 'true');
+      } catch (e) {
+        console.warn("Failed to save auth to localStorage:", e);
+      }
       setIsAuthorized(true);
       setPassError(false);
     } else {

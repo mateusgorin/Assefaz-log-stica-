@@ -15,7 +15,8 @@
     "isolatedModules": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": ["vite/client"]
   },
   "include": ["src", "App.tsx", "index.tsx", "constants.tsx", "types.ts", "components", "lib"]
 }

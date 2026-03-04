@@ -1,6 +1,15 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+let aiInstance: GoogleGenAI | null = null;
+
+const getAi = () => {
+  if (!aiInstance) {
+    // Safe access to process.env for browser environments
+    const apiKey = typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : '';
+    aiInstance = new GoogleGenAI({ apiKey: apiKey || '' });
+  }
+  return aiInstance;
+};
 
 export interface ExtractedInvoiceItem {
   name: string;
@@ -19,6 +28,7 @@ export interface ExtractedInvoice {
 
 export async function extractInvoiceData(fileBase64: string, mimeType: string): Promise<ExtractedInvoice> {
   const model = "gemini-3-flash-preview";
+  const ai = getAi();
   
   const prompt = `Analise esta Nota Fiscal (imagem ou PDF) e extraia os itens comprados. 
   Retorne uma lista de objetos contendo: nome do produto, quantidade, valor unitário e valor total do item.
