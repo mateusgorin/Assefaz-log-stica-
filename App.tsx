@@ -627,7 +627,7 @@ const App: React.FC = () => {
     <div className="flex h-screen bg-[#F4F6F8]">
       {/* TOAST NOTIFICATION */}
       {toast.show && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 pointer-events-none">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
           <div className={`flex flex-col items-center gap-4 px-10 py-8 shadow-2xl border-t-8 animate-in zoom-in duration-300 pointer-events-auto ${toast.type === 'success' ? 'bg-white border-green-500 text-slate-800' : 'bg-white border-red-500 text-red-800'}`}>
             <div className={`w-16 h-16 rounded-full flex items-center justify-center ${toast.type === 'success' ? 'bg-green-50 text-green-500' : 'bg-red-50 text-red-500'}`}>
               {toast.type === 'success' ? <CheckCircle className="w-10 h-10" /> : <AlertCircle className="w-10 h-10" />}

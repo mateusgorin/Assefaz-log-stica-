@@ -13,6 +13,7 @@ interface InvoiceScannerProps {
 const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtracted, onClose, showToast }) => {
   const [loading, setLoading] = useState(false);
   const [loadingTime, setLoadingTime] = useState(0);
+  const [loadingStatus, setLoadingStatus] = useState('');
   const [extractedData, setExtractedData] = useState<ExtractedInvoice | null>(null);
   const [mappings, setMappings] = useState<Record<number, string>>({}); // index -> productId
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -98,6 +99,18 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
     if (!file) return;
 
     console.log("Arquivo selecionado:", file.name, file.type);
+    
+    // Check if API Key exists before starting
+    const apiKey = (typeof process !== 'undefined' && (process.env?.GEMINI_API_KEY || process.env?.API_KEY)) 
+      || (import.meta as any).env?.VITE_GEMINI_API_KEY
+      || (import.meta as any).env?.GEMINI_API_KEY;
+    
+    if (!apiKey) {
+      showToast("Configuração do sistema incompleta: Chave da IA não encontrada. No Vercel, use o nome VITE_GEMINI_API_KEY.", "error");
+      return;
+    }
+
+    setLoadingStatus('Iniciando...');
     startLoading();
     setExtractedData(null);
     setMappings({});
@@ -106,18 +119,30 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
       const reader = new FileReader();
       reader.onload = async () => {
         try {
+          setLoadingStatus('Lendo arquivo...');
           console.log("Leitura do arquivo concluída");
-          let base64 = (reader.result as string).split(',')[1];
+          const result = reader.result as string;
+          if (!result) throw new Error("Falha ao ler o conteúdo do arquivo.");
+          
+          let base64 = result.split(',')[1];
+          if (!base64) throw new Error("Formato de arquivo inválido.");
           
           if (file.type.startsWith('image/')) {
+            setLoadingStatus('Otimizando imagem...');
             console.log("Iniciando redimensionamento...");
-            base64 = await resizeImage(base64, file.type);
-            console.log("Redimensionamento concluído");
+            try {
+              base64 = await resizeImage(base64, file.type);
+              console.log("Redimensionamento concluído");
+            } catch (resizeErr) {
+              console.warn("Falha no redimensionamento, tentando original:", resizeErr);
+            }
           }
 
+          setLoadingStatus('Analisando com IA...');
           console.log("Enviando para Gemini...");
           const data = await extractInvoiceData(base64, file.type.startsWith('image/') ? 'image/jpeg' : file.type);
-          console.log("Resposta do Gemini recebida");
+          setLoadingStatus('Concluído!');
+          console.log("Resposta do Gemini recebida", data);
           
           if (!data || !data.items || data.items.length === 0) {
             throw new Error("Nenhum item encontrado na nota fiscal.");
@@ -237,7 +262,7 @@ const InvoiceScanner: React.FC<InvoiceScannerProps> = ({ products, onItemsExtrac
               </div>
               <div className="text-center">
                 <p className="text-[14px] font-bold uppercase tracking-widest text-slate-700">Processando Nota Fiscal...</p>
-                <p className="text-[11px] text-slate-400 uppercase tracking-widest animate-pulse">A Inteligência Artificial está lendo os dados</p>
+                <p className="text-[11px] text-emerald-600 font-bold uppercase tracking-widest animate-pulse mt-1">{loadingStatus}</p>
                 
                 {loadingTime > 15 && (
                   <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-lg animate-in fade-in slide-in-from-top-2">
