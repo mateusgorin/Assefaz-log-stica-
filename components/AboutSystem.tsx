@@ -98,7 +98,7 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
             <div className="space-y-4">
               <h2 className="text-[20px] font-bold text-[#14213D] uppercase tracking-tight">Como funciona o banco de dados do sistema</h2>
               <p className="text-[14px] text-slate-600 leading-relaxed">
-                No centro do sistema existe um banco de dados seguro, construído em <span className="font-bold text-emerald-600">Supabase</span>, que funciona como a “memória oficial” da plataforma.
+                No centro do sistema existe um banco de dados seguro, construído com <span className="font-bold text-emerald-600">Supabase</span>, que funciona como a “memória oficial” da plataforma.
               </p>
             </div>
           </div>
@@ -127,7 +127,7 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
               Sempre que um usuário realiza uma ação, o sistema grava automaticamente essa informação no banco de dados e atualiza os estoques em tempo real. Isso garante que <span className="font-bold">Sede e 506</span> visualizem dados consistentes, confiáveis e sincronizados.
             </p>
             <p>
-              Além do controle físico dos materiais, o sistema também registra os valores financeiros informados na nota fiscal de entrada. Cada item recebido pode ter seu valor unitário registrado, permitindo acompanhar não apenas quantidade, mas também o custo real dos materiais adquiridos.
+              Além do controle físico dos materiais, o sistema permite a <span className="font-bold text-emerald-600">leitura automática de Notas Fiscais</span> (PDF ou Foto) utilizando Inteligência Artificial. O sistema extrai automaticamente produtos, quantidades e valores, permitindo acompanhar não apenas o estoque, mas também o custo real dos materiais de forma automatizada, com possibilidade de conferência e edição manual.
             </p>
             <div className="bg-amber-50 border-l-4 border-amber-500 p-6 space-y-4">
               <p className="font-medium text-amber-900">
@@ -154,6 +154,7 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
             {[
               { icon: <Layout className="w-5 h-5" />, text: "Gestão centralizada de múltiplas unidades (Sede e 506)" },
               { icon: <Shield className="w-5 h-5" />, text: "Acesso protegido por usuário e senha" },
+              { icon: <Zap className="w-5 h-5" />, text: "Leitura automática de Notas Fiscais via IA (PDF ou Foto)" },
               { icon: <Zap className="w-5 h-5" />, text: "Dashboard com visão geral e alertas de estoque baixo" },
               { icon: <Layout className="w-5 h-5" />, text: "Registro de saídas em lote, otimizando o processo" },
               { icon: <CheckCircle2 className="w-5 h-5" />, text: "Assinatura digital do retirante e do responsável" },
@@ -224,7 +225,7 @@ const AboutSystem: React.FC<AboutSystemProps> = ({ onClose, isModal = false }) =
         {/* Footer Section */}
         <footer className="pt-12 border-t border-slate-100 text-center space-y-6">
           <p className="text-[15px] text-slate-700 font-medium leading-relaxed max-w-3xl mx-auto">
-            O Controle Logístico foi desenvolvido para ser uma ferramenta confiável de gestão. Com um banco de dados seguro e centralizado em Supabase, o sistema garante controle físico e financeiro dos materiais, oferecendo rastreabilidade, transparência e base sólida para decisões administrativas.
+            O Controle Logístico foi desenvolvido para ser uma ferramenta confiável de gestão. Com um banco de dados seguro e centralizado com Supabase, o sistema garante controle físico e financeiro dos materiais, oferecendo rastreabilidade, transparência e base sólida para decisões administrativas.
           </p>
           <div className="flex flex-col items-center justify-center gap-4 pt-4">
           <div className="bg-amber-50 border border-amber-100 p-6 rounded-xl space-y-4">

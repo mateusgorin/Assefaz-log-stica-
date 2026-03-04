@@ -1,8 +1,9 @@
 
 import React, { useState, useMemo } from 'react';
-import { PackagePlus, ShoppingCart, Hash, CheckCircle2, Warehouse, Loader2, ArrowDownCircle, Eye, X, FileText, Printer, Plus, Trash2, ListChecks } from 'lucide-react';
+import { PackagePlus, ShoppingCart, Hash, CheckCircle2, Warehouse, Loader2, ArrowDownCircle, Eye, X, FileText, Printer, Plus, Trash2, ListChecks, ScanLine } from 'lucide-react';
 import { Product, StockStaff, Unit, View, Entry } from '../types';
 import SignaturePad from './SignaturePad';
+import InvoiceScanner from './InvoiceScanner';
 
 interface EntryFormProps {
   unit: Unit;
@@ -28,9 +29,27 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
   const [signature, setSignature] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [showScanner, setShowScanner] = useState(false);
   
   // Novo estado para gerenciar múltiplos itens no lote atual
   const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
+
+  const handleAddExtractedItems = (items: { productId: string, quantity: number, unitPrice: number }[]) => {
+    const newBatchItems = [...batchItems];
+    
+    items.forEach(newItem => {
+      const existingIndex = newBatchItems.findIndex(item => item.productId === newItem.productId);
+      if (existingIndex >= 0) {
+        newBatchItems[existingIndex].quantity += newItem.quantity;
+        newBatchItems[existingIndex].unitPrice = newItem.unitPrice;
+      } else {
+        newBatchItems.push(newItem);
+      }
+    });
+    
+    setBatchItems(newBatchItems);
+    showToast(`${items.length} itens importados da nota fiscal com sucesso!`, "success");
+  };
 
   const handleAddItem = () => {
     const numQuantity = Number(quantity);
@@ -108,12 +127,27 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
 
   return (
     <div className="space-y-10 pb-20 animate-in fade-in duration-500">
-      <header className="border-b border-slate-200 pb-6">
+      <header className="border-b border-slate-200 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-[20px] font-semibold text-[#14213D] uppercase tracking-tighter">Entrada de Insumos</h1>
           <p className="text-[12px] text-slate-500 mt-1 uppercase tracking-[0.2em] font-normal">Registro de Reabastecimento Múltiplo — {unit.toUpperCase()}</p>
         </div>
+        <button 
+          onClick={() => setShowScanner(true)}
+          className="flex items-center gap-2 bg-amber-500 text-white px-4 py-2.5 text-[11px] font-bold uppercase tracking-widest hover:bg-amber-600 transition-all shadow-md hover:shadow-lg"
+        >
+          <ScanLine className="w-4 h-4" /> Importar de Nota Fiscal
+        </button>
       </header>
+
+      {showScanner && (
+        <InvoiceScanner 
+          products={products}
+          onClose={() => setShowScanner(false)}
+          onItemsExtracted={handleAddExtractedItems}
+          showToast={showToast}
+        />
+      )}
 
       <div className="max-w-5xl mx-auto space-y-12">
         {/* FORMULÁRIO DE REGISTRO EM LOTE */}
