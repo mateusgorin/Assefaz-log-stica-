@@ -247,7 +247,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
 
       {/* FILTROS GLOBAIS (COLAPSÁVEL) */}
       {showFilters && (
-        <section className="bg-white border border-slate-200 p-4 sm:p-6 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in slide-in-from-top-4 duration-300">
+        <section className="bg-white border border-slate-200 p-4 sm:p-6 shadow-sm grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 animate-in slide-in-from-top-4 duration-300">
           <div className="space-y-1">
             <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest ml-1">Período (Mês)</label>
             <div className="relative">
@@ -310,7 +310,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
       )}
 
       {/* CARDS INDICADORES (KPIs) */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
         <KPICard 
           title="Total Retirado" 
           value={filteredData.reduce((acc, m) => acc + m.quantity, 0)} 
@@ -339,7 +339,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
       </section>
 
       {/* GRÁFICOS PRINCIPAIS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
         {/* Ranking de Setores */}
         <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-sm">
           <div className="flex justify-between items-center mb-10 border-b border-slate-50 pb-4">
@@ -400,7 +400,7 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
         </div>
 
         {/* Evolução Mensal */}
-        <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-sm lg:col-span-3">
+        <div className="bg-white border border-slate-200 p-6 sm:p-8 shadow-sm xl:col-span-3">
           <div className="flex justify-between items-center mb-10 border-b border-slate-50 pb-4">
             <h3 className="text-[12px] font-semibold uppercase tracking-[0.2em] text-slate-400">Evolução de Consumo Mensal — {filterYear}</h3>
             <Calendar className={`w-4 h-4 ${theme.text}`} />
@@ -426,8 +426,8 @@ const Dashboard: React.FC<DashboardProps> = ({ unit, movements, products, sector
       </div>
 
       {/* RANKING ACUMULADO GERAL */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-        <div className="lg:col-span-2 bg-white border border-slate-200 p-6 sm:p-10 shadow-sm">
+      <section className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
+        <div className="xl:col-span-2 bg-white border border-slate-200 p-6 sm:p-10 shadow-sm">
           <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-6">
             <TrendingUp className={`w-5 h-5 ${theme.text}`} />
             <h2 className="text-[16px] font-semibold uppercase tracking-widest text-slate-800">Insights de Consumo por Setor (vs Mês Anterior)</h2>
