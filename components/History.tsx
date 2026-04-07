@@ -134,29 +134,6 @@ const History: React.FC<HistoryProps> = ({ unit, movements, entries, products, s
                   </tbody>
                 </table>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-slate-50 border border-slate-100 p-4">
-                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-3 text-center">Assinatura do Retirante</p>
-                  <div className="bg-white border border-slate-100 h-24 flex items-center justify-center">
-                    {viewingMovementBatch[0].signatureWithdrawer ? (
-                      <img src={viewingMovementBatch[0].signatureWithdrawer} alt="Assinatura Retirante" className="max-h-full max-w-full mix-blend-multiply" />
-                    ) : (
-                      <span className="text-[11px] text-slate-300 uppercase font-semibold">Sem assinatura</span>
-                    )}
-                  </div>
-                </div>
-                <div className="bg-slate-50 border border-slate-100 p-4">
-                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-3 text-center">Assinatura do Entregador</p>
-                  <div className="bg-white border border-slate-100 h-24 flex items-center justify-center">
-                    {viewingMovementBatch[0].signatureDeliverer ? (
-                      <img src={viewingMovementBatch[0].signatureDeliverer} alt="Assinatura Entregador" className="max-h-full max-w-full mix-blend-multiply" />
-                    ) : (
-                      <span className="text-[11px] text-slate-300 uppercase font-semibold">Sem assinatura</span>
-                    )}
-                  </div>
-                </div>
-              </div>
             </div>
 
             <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
@@ -210,7 +187,8 @@ const History: React.FC<HistoryProps> = ({ unit, movements, entries, products, s
                     <tr className="bg-slate-50 border-b border-slate-100">
                       <th className="px-4 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Item Recebido</th>
                       <th className="px-4 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-widest text-right">V. Unit</th>
-                      <th className="px-4 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-widest text-right">Quantidade</th>
+                      <th className="px-4 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-widest text-right">Qtd</th>
+                      <th className="px-4 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-widest text-right">Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
@@ -218,22 +196,20 @@ const History: React.FC<HistoryProps> = ({ unit, movements, entries, products, s
                       <tr key={idx}>
                         <td className="px-4 py-3 text-[12px] font-semibold text-slate-700 uppercase">{getProduct(item.productId)?.name || 'N/A'}</td>
                         <td className="px-4 py-3 text-[12px] font-normal text-slate-500 text-right">R$ {item.unitPrice.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-[12px] font-bold text-emerald-600 text-right">+{item.quantity} {getProduct(item.productId)?.unit || 'UN'}</td>
+                        <td className="px-4 py-3 text-[12px] font-bold text-slate-600 text-right">+{item.quantity} {getProduct(item.productId)?.unit || 'UN'}</td>
+                        <td className="px-4 py-3 text-[12px] font-bold text-emerald-600 text-right">R$ {(item.quantity * item.unitPrice).toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot className="bg-slate-50 border-t border-slate-200">
+                    <tr>
+                      <td colSpan={3} className="px-4 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Total da Nota:</td>
+                      <td className="px-4 py-3 text-[14px] font-black text-emerald-700 text-right">
+                        R$ {viewingBatch.reduce((acc, curr) => acc + (curr.quantity * curr.unitPrice), 0).toFixed(2)}
+                      </td>
+                    </tr>
+                  </tfoot>
                 </table>
-              </div>
-
-              <div className="bg-slate-50 border border-slate-100 p-6">
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-4 text-center">Assinatura do Operador</p>
-                <div className="bg-white border border-slate-100 h-32 flex items-center justify-center">
-                  {viewingBatch[0].signature ? (
-                    <img src={viewingBatch[0].signature} alt="Assinatura" className="max-h-full max-w-full mix-blend-multiply" />
-                  ) : (
-                    <span className="text-[11px] text-slate-300 uppercase font-semibold">Sem assinatura</span>
-                  )}
-                </div>
               </div>
             </div>
 

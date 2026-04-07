@@ -34,8 +34,6 @@ export interface Movement {
   productId: string;
   quantity: number;
   stockStaffId: string;
-  signatureWithdrawer: string;
-  signatureDeliverer: string;
   unit: Unit;
 }
 
@@ -48,7 +46,6 @@ export interface Entry {
   quantity: number;
   unitPrice: number; // Valor unitário em Reais
   stockStaffId: string;
-  signature: string;
   unit: Unit;
 }
 

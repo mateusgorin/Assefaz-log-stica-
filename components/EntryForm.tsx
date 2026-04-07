@@ -2,7 +2,6 @@
 import React, { useState, useMemo } from 'react';
 import { PackagePlus, ShoppingCart, Hash, CheckCircle2, Warehouse, Loader2, ArrowDownCircle, Eye, X, FileText, Printer, Plus, Trash2, ListChecks, ScanLine } from 'lucide-react';
 import { Product, StockStaff, Unit, View, Entry } from '../types';
-import SignaturePad from './SignaturePad';
 import InvoiceScanner from './InvoiceScanner';
 
 interface EntryFormProps {
@@ -10,7 +9,7 @@ interface EntryFormProps {
   products: Product[];
   stockStaff: StockStaff[];
   entries: Entry[];
-  onAddStock: (data: { items: { productId: string, quantity: number, unitPrice: number }[], staffId: string, signature: string }) => void;
+  onAddStock: (data: { items: { productId: string, quantity: number, unitPrice: number }[], staffId: string }) => void;
   onNavigate: (view: View) => void;
   showToast: (message: string, type?: 'success' | 'error') => void;
 }
@@ -26,13 +25,17 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
   const [staffId, setStaffId] = useState('');
   const [quantity, setQuantity] = useState<number | string>(1);
   const [unitPrice, setUnitPrice] = useState<number | string>('');
-  const [signature, setSignature] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [showScanner, setShowScanner] = useState(false);
   
   // Novo estado para gerenciar múltiplos itens no lote atual
   const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
+
+  // Cálculo do valor total do lote
+  const totalBatchValue = useMemo(() => {
+    return batchItems.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+  }, [batchItems]);
 
   const handleAddExtractedItems = (items: { productId: string, quantity: number, unitPrice: number }[]) => {
     const newBatchItems = [...batchItems];
@@ -95,7 +98,6 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
     
     const newErrors = {
       staff: !staffId,
-      signature: !signature,
       items: batchItems.length === 0
     };
 
@@ -111,8 +113,7 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
     setTimeout(() => {
       onAddStock({
         items: batchItems,
-        staffId,
-        signature
+        staffId
       });
       setLoading(false);
       onNavigate(View.HISTORY);
@@ -228,12 +229,22 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
                     </div>
                   ) : (
                     <table className="w-full text-left border-collapse">
+                      <thead className="bg-slate-100/50 border-b border-slate-100">
+                        <tr>
+                          <th className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">Item</th>
+                          <th className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-right">Unitário</th>
+                          <th className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-right">Qtd</th>
+                          <th className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-right">Total</th>
+                          <th className="px-4 py-2 w-10"></th>
+                        </tr>
+                      </thead>
                       <tbody className="divide-y divide-slate-50">
                         {batchItems.map((item, idx) => (
                           <tr key={idx} className="hover:bg-slate-50/50">
                             <td className="px-4 py-3 text-[12px] font-semibold text-slate-700 uppercase">{getProduct(item.productId)?.name}</td>
-                            <td className="px-4 py-3 text-[12px] font-normal text-slate-500 text-right">R$ {item.unitPrice.toFixed(2)}</td>
-                            <td className="px-4 py-3 text-[12px] font-bold text-emerald-600 text-right">{item.quantity} {getProduct(item.productId)?.unit}</td>
+                            <td className="px-4 py-3 text-[12px] font-normal text-slate-500 text-right whitespace-nowrap">R$ {item.unitPrice.toFixed(2)}</td>
+                            <td className="px-4 py-3 text-[12px] font-bold text-slate-600 text-right whitespace-nowrap">{item.quantity} {getProduct(item.productId)?.unit}</td>
+                            <td className="px-4 py-3 text-[12px] font-bold text-emerald-600 text-right whitespace-nowrap">R$ {(item.quantity * item.unitPrice).toFixed(2)}</td>
                             <td className="px-4 py-3 text-right w-10">
                               <button onClick={() => handleRemoveItem(idx)} className="text-slate-300 hover:text-red-500 p-1">
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -242,6 +253,13 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
                           </tr>
                         ))}
                       </tbody>
+                      <tfoot className="bg-slate-50 border-t border-slate-200">
+                        <tr>
+                          <td colSpan={3} className="px-4 py-4 text-[12px] font-bold text-slate-500 uppercase tracking-widest text-right">Total da Nota:</td>
+                          <td className="px-4 py-4 text-[16px] font-black text-emerald-700 text-right whitespace-nowrap">R$ {totalBatchValue.toFixed(2)}</td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
                     </table>
                   )}
                 </div>
@@ -262,19 +280,6 @@ const EntryForm: React.FC<EntryFormProps> = ({ unit, products, stockStaff, entri
                   <option value="">Selecione...</option>
                   {stockStaff.filter(s => s.active !== false).map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
                 </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className={labelClass(errors.signature)}>Assinatura Digital</label>
-                <div className={`border p-2 transition-all ${errors.signature ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
-                  <SignaturePad 
-                    label="Assinatura do Operador"
-                    onSave={(val) => { setSignature(val); setErrors(prev => ({...prev, signature: false})); }} 
-                    onClear={() => setSignature('')}
-                    colorClass="text-emerald-600"
-                    error={errors.signature}
-                  />
-                </div>
               </div>
 
               <button type="submit" disabled={loading || batchItems.length === 0} className={`w-full py-4 text-white font-semibold uppercase tracking-[0.2em] text-[12px] transition-all flex items-center justify-center gap-3 shadow-lg ${loading || batchItems.length === 0 ? 'bg-slate-400' : theme.primaryButton}`}>

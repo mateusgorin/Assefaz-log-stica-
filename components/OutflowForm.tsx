@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, ShoppingCart, Hash, CheckCircle2, Warehouse, FileText, Loader2, AlertCircle, Plus, Trash2, ListChecks, ArrowUpCircle, Search, ChevronDown, X } from 'lucide-react';
 import { Sector, Product, StockStaff, Movement, Unit, View } from '../types';
-import SignaturePad from './SignaturePad';
 
 interface OutflowFormProps {
   unit: Unit;
@@ -11,9 +10,7 @@ interface OutflowFormProps {
   onAddMovement: (data: { 
     items: { productId: string, quantity: number }[], 
     sectorId: string, 
-    staffId: string, 
-    signatureWithdrawer: string, 
-    signatureDeliverer: string 
+    staffId: string
   }) => void;
   onNavigate: (view: View) => void;
   showToast: (message: string, type?: 'success' | 'error') => void;
@@ -29,8 +26,6 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
   const [productId, setProductId] = useState('');
   const [staffId, setStaffId] = useState('');
   const [quantity, setQuantity] = useState<number | string>(1);
-  const [sigWithdrawer, setSigWithdrawer] = useState('');
-  const [sigDeliverer, setSigDeliverer] = useState('');
   const [loading, setLoading] = useState(false);
   
   const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
@@ -68,8 +63,6 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
     const newErrors: Record<string, boolean> = {
       sector: !sectorId,
       staff: !staffId,
-      sigWithdrawer: !sigWithdrawer,
-      sigDeliverer: !sigDeliverer,
       items: batchItems.length === 0
     };
 
@@ -88,9 +81,7 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
       onAddMovement({
         items: batchItems,
         sectorId,
-        staffId,
-        signatureWithdrawer: sigWithdrawer,
-        signatureDeliverer: sigDeliverer
+        staffId
       });
 
       setLoading(false);
@@ -249,33 +240,6 @@ const OutflowForm: React.FC<OutflowFormProps> = ({ unit, sectors, products, stoc
                     <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>
                   ))}
                 </select>
-              </div>
-
-              <div className="space-y-4 pt-4 border-t border-slate-50">
-                <div className={`p-3 border transition-all ${errors.sigWithdrawer ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
-                  <SignaturePad 
-                    label="Assinatura do Retirante" 
-                    onSave={(val) => {
-                      setSigWithdrawer(val);
-                      if (val) setErrors(prev => ({...prev, sigWithdrawer: false}));
-                    }} 
-                    onClear={() => setSigWithdrawer('')}
-                    colorClass={theme.primaryText}
-                    error={errors.sigWithdrawer}
-                  />
-                </div>
-                <div className={`p-3 border transition-all ${errors.sigDeliverer ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
-                  <SignaturePad 
-                    label="Assinatura do Entregador" 
-                    onSave={(val) => {
-                      setSigDeliverer(val);
-                      if (val) setErrors(prev => ({...prev, sigDeliverer: false}));
-                    }} 
-                    onClear={() => setSigDeliverer('')}
-                    colorClass={theme.primaryText}
-                    error={errors.sigDeliverer}
-                  />
-                </div>
               </div>
 
               <button type="submit" disabled={loading || batchItems.length === 0} className={`w-full py-4 text-white font-semibold uppercase tracking-[0.2em] text-[12px] transition-all flex items-center justify-center gap-3 shadow-lg ${loading || batchItems.length === 0 ? 'bg-slate-400' : theme.primaryButton}`}>

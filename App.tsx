@@ -111,8 +111,6 @@ const App: React.FC = () => {
           productId: m.product_id,
           quantity: m.quantity,
           stockStaffId: m.stock_staff_id,
-          signatureWithdrawer: m.signature_withdrawer,
-          signatureDeliverer: m.signature_deliverer,
           unit: m.unit as Unit
         })));
       } else {
@@ -129,7 +127,6 @@ const App: React.FC = () => {
           quantity: e.quantity,
           unitPrice: e.unit_price || 0,
           stockStaffId: e.stock_staff_id,
-          signature: e.signature,
           unit: e.unit as Unit
         })));
       } else {
@@ -203,9 +200,7 @@ const App: React.FC = () => {
   const handleAddMovement = useCallback(async (data: { 
     items: { productId: string, quantity: number }[], 
     sectorId: string, 
-    staffId: string, 
-    signatureWithdrawer: string, 
-    signatureDeliverer: string 
+    staffId: string
   }) => {
     if (!activeUnit) return;
     const now = new Date();
@@ -220,8 +215,6 @@ const App: React.FC = () => {
         product_id: item.productId,
         quantity: item.quantity,
         stock_staff_id: data.staffId,
-        signature_withdrawer: data.signatureWithdrawer,
-        signature_deliverer: data.signatureDeliverer,
         unit: activeUnit
       }));
 
@@ -282,7 +275,7 @@ const App: React.FC = () => {
     );
   }, [fetchData]);
 
-  const handleAddStock = useCallback(async (data: { items: { productId: string, quantity: number, unitPrice: number }[], staffId: string, signature: string }) => {
+  const handleAddStock = useCallback(async (data: { items: { productId: string, quantity: number, unitPrice: number }[], staffId: string }) => {
     if (!activeUnit) return;
     const now = new Date();
     const batchId = `BATCH-${now.getTime()}`;
@@ -297,7 +290,6 @@ const App: React.FC = () => {
         quantity: item.quantity,
         unit_price: item.unitPrice,
         stock_staff_id: data.staffId,
-        signature: data.signature,
         unit: activeUnit
       }));
 

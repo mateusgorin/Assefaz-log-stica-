@@ -110,8 +110,6 @@ const generateMockMovements = (): Movement[] => {
       productId: prod.id,
       quantity: Math.floor(Math.random() * 10) + 1,
       stockStaffId: stf.id,
-      signatureWithdrawer: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
-      signatureDeliverer: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
       unit: unit
     });
   }
