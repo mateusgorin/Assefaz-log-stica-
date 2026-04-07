@@ -5,13 +5,12 @@ let aiInstance: GoogleGenAI | null = null;
 const getAi = () => {
   if (!aiInstance) {
     // Robust API key retrieval for different environments (AI Studio, Vercel, Local)
-    const apiKey = (typeof process !== 'undefined' && (process.env?.GEMINI_API_KEY || process.env?.API_KEY)) 
+    const apiKey = (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) 
       || (import.meta as any).env?.VITE_GEMINI_API_KEY 
-      || (import.meta as any).env?.GEMINI_API_KEY
-      || '';
+      || (import.meta as any).env?.GEMINI_API_KEY;
       
     if (!apiKey) {
-      console.error("ERRO: GEMINI_API_KEY não encontrada. Certifique-se de configurar VITE_GEMINI_API_KEY no Vercel.");
+      throw new Error("CONFIGURAÇÃO PENDENTE: A chave da Inteligência Artificial (GEMINI_API_KEY) não foi detectada. Se você estiver no Vercel, adicione VITE_GEMINI_API_KEY nas variáveis de ambiente.");
     }
     
     aiInstance = new GoogleGenAI({ apiKey });

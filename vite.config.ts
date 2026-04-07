@@ -4,6 +4,9 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    'process.env.GEMINI_API_KEY': JSON.stringify(process.env.GEMINI_API_KEY)
+  },
   build: {
     chunkSizeWarningLimit: 1500, // Aumentado para silenciar o aviso de arquivos grandes como jspdf
     rollupOptions: {
